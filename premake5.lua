@@ -9,6 +9,7 @@ workspace "Timey"
 	
 	IncludeDir = {}
 	IncludeDir["sqlite3"] = "vendor/sqlite3"
+	IncludeDir["spdlog"] = "vendor/spdlog/include"
 	
 	
 	outdir = "%{cfg.buildcfg}_%{cfg.architecture}_%{cfg.system}"
@@ -38,8 +39,11 @@ workspace "Timey"
 		
 			
 		includedirs {
+			"TimeyApplication/src",
+			"TimeyApplication/src/AppCore",
 			"TimeyCore/src",
-			"%{IncludeDir.sqlite3}"
+			"%{IncludeDir.sqlite3}",
+			"%{IncludeDir.spdlog}"
 			}
 			
 		links{	"TimeyCore"
@@ -50,7 +54,8 @@ workspace "Timey"
 			systemversion "latest"
 			
 			defines{
-			"TIMEY_PLATFORM_WINDOWS"
+			"TIMEY_PLATFORM_WINDOWS",
+			 "TIMEY_ENABLE_ASSERT"
 			}		
 			
 		filter {"configurations:Debug"}
@@ -84,17 +89,21 @@ workspace "Timey"
 			"%{prj.name}/src/**.h",
 			"%{prj.name}/src/**.hpp",
 			"%{prj.name}/src/**.cpp",
-			"%{prj.name}/src/**.c"
-		
+			"%{prj.name}/src/**.c",
+			"%{IncludeDir.spdlog}/spdlog/**.h"
 		}
 		
 		
 			
 		includedirs {
-			"%{IncludeDir.sqlite3}"
+			"TimeyCore/src",
+			"TimeyCore/src/Core",
+			"%{IncludeDir.sqlite3}",
+			"%{IncludeDir.spdlog}"
 		}
 		
-		links{	"sqlite3"
+		links{	
+		"sqlite3"
 		}
 		
 		filter {"system:windows"}
@@ -102,7 +111,8 @@ workspace "Timey"
 			systemversion "latest"
 			
 			defines{
-			"TIMEY_PLATFORM_WINDOWS"
+			"TIMEY_PLATFORM_WINDOWS",
+			 "TIMEY_ENABLE_ASSERT"
 			}	
 			
 			

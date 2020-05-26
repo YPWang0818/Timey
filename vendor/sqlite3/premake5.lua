@@ -10,7 +10,11 @@ project "sqlite3"
 		"sqlite3.h"
 		}
 	
+	includedirs
+	{
+	"include"
 	
+	}
 
 	filter "system:windows"
 		systemversion "latest"
