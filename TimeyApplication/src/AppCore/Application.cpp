@@ -7,7 +7,7 @@ namespace Timey {
 
 	Application::Application()
 	{
-		//TIMEY_CORE_ASSERT(!s_instance, "more than one application is initialized.");
+		TIMEY_CORE_ASSERT(!s_instance, "more than one application is initialized.");
 
 		s_instance = this;
 		_Init();
@@ -30,7 +30,7 @@ namespace Timey {
 
 	void Application::_Init()
 	{
-		//TIMEY_INFO("Application Initialized.");
+		TIMEY_INFO("Application Initialized.");
 	}
 
 
