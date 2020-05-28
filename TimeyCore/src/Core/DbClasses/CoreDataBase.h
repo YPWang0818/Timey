@@ -1,5 +1,6 @@
 #pragma once
 #include "timey_pch.h"
+#include "sqlite3.h"
 
 namespace Timey {
 
@@ -10,6 +11,9 @@ namespace Timey {
 	public:
 
 		CoreDataBase(const std::string& file_name);
+		~CoreDataBase();
+
+		inline sqlite3* getSqliteDb() const { return _db; };
 		
 	protected:
 		void AddQuery(const std::string& name, Query& query);
@@ -19,8 +23,9 @@ namespace Timey {
 
 	private:
 
+		sqlite3* _db;
 		std::string  _file_name;
-		std::unordered_map<Query*, std::string> _query_cache;
+		std::unordered_map<std::string, Query*> _query_cache;
 
 	};
 }

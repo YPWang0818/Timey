@@ -22,7 +22,7 @@ namespace Timey {
 
 		void UnBind();
 	private:
-		//sqlite3_stmt _stmt;
+		sqlite3_stmt* _stmt;
 		CoreDataBase* _database;
 		std::string _name;
 		std::string _query; // for debug purpose only;

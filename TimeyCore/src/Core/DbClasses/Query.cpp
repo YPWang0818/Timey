@@ -1,5 +1,6 @@
 #include "timey_pch.h"
 #include "Query.h"
+#include "CoreDataBase.h"
 
 namespace Timey {
 
@@ -10,9 +11,7 @@ namespace Timey {
 		_query(query),
 		_database(db)
 	{
-		
-	
-		// initialize the stmt here
+		sqlite3_prepare_v2(_database->getSqliteDb(), query.c_str() , -1, &_stmt, nullptr);
 	}
 
 	void Query::UnBind()
