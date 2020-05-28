@@ -29,6 +29,9 @@ workspace "Timey"
 		objdir ("obj/" .. outdir .. "/%{prj.name}")
 		
 		
+		pchheader "timey_pch.h"
+		pchsource "TimeyApplication/src/timey_pch.cpp"
+		
 		files {
 			"%{prj.name}/src/**.h",
 			"%{prj.name}/src/**.hpp",
@@ -84,6 +87,8 @@ workspace "Timey"
 		targetdir ("bin/" .. outdir .. "/%{prj.name}")
 		objdir ("obj/" .. outdir .. "/%{prj.name}")
 		
+		pchheader "timey_pch.h"
+		pchsource "TimeyCore/src/timey_pch.cpp"
 		
 		files {
 			"%{prj.name}/src/**.h",

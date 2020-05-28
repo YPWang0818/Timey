@@ -306,10 +306,17 @@
     <ClInclude Include="src\timey_pch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\DbClasses\CoreDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\Query.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\timey_pch.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\Query.cpp" />
   </ItemGroup>
 </Project>

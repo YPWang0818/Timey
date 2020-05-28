@@ -1,3 +1,4 @@
+#include "timey_pch.h"
 #include "Application.h"
 #include "TimeyCore.h"
 
@@ -23,7 +24,7 @@ namespace Timey {
 	{
 		while (_is_running) {
 
-			//TIMEY_TRACE("Application Running");
+			TIMEY_TRACE("Application Running");
 
 		}
 	}
