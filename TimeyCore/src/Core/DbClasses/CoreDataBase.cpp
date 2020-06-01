@@ -29,12 +29,6 @@ namespace Timey {
 		_query_cache[name] = &query ;
 	}
 
-	void CoreDataBase::CreateQuery(const std::string& name, const std::string& stmt)
-	{
-		
-
-	}
-
 	void CoreDataBase::RemoveQuery(const std::string& name)
 	{
 		if (_query_cache.find(name) == _query_cache.end() ) {

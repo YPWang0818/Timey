@@ -6,17 +6,25 @@ namespace Timey {
 
 
 
-	Query::Query(const std::string& name, const std::string& query, CoreDataBase* db)
-		:_name(name),
-		_query(query),
-		_database(db)
+	Query::Query(const std::string& query, CoreDataBase* db)
+		:_database(db)
 	{
-		sqlite3_prepare_v2(_database->getSqliteDb(), query.c_str() , -1, &_stmt, nullptr);
+		int ok = sqlite3_prepare_v2(_database->getSqliteDb(), query.c_str(), -1, &_stmt, nullptr);
+		if (ok != SQLITE_OK) {
+			TIMEY_CORE_ERROR("[Sqlite3] Preparing Failure {0}", ok);
+			TIMEY_CORE_ASSERT(false, "");
+		};
+		
 	}
 
-	void Query::UnBind()
+	Query::~Query()
 	{
+		sqlite3_finalize(_stmt);
+	}
 
+	void Query::Unbind()
+	{
+		sqlite3_clear_bindings(_stmt);
 	}
 
 }

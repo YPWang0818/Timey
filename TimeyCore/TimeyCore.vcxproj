@@ -221,6 +221,7 @@
     <ClInclude Include="..\vendor\spdlog\include\spdlog\version.h" />
     <ClInclude Include="src\Core\DbClasses\CoreDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\Query.h" />
+    <ClInclude Include="src\Core\DbClasses\QueryResult.h" />
     <ClInclude Include="src\Core\Log.h" />
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
@@ -228,6 +229,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\Query.cpp" />
+    <ClCompile Include="src\Core\DbClasses\QueryResult.cpp" />
     <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="src\timey_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
