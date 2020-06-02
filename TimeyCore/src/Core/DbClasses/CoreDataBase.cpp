@@ -9,9 +9,12 @@ namespace Timey {
 		:_file_name(file_name)
 	{
 		// Needs to find if the database exists, if not, create one with the correct scheme.
-
-		sqlite3_open(_file_name.c_str(), &_db);
-
+		int ok = sqlite3_open(_file_name.c_str(), &_db);
+		if (ok != SQLITE_OK) {
+			TIMEY_ERROR("[Sqlite3] Failed to open file {0}", _file_name.c_str());
+			const char* msg = sqlite3_errmsg(_db);
+			TIMEY_CORE_ERROR("[Sqlite3] {0}", msg);
+		}
 	}
 
 	CoreDataBase::~CoreDataBase() {

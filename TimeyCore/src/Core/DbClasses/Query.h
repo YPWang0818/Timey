@@ -1,6 +1,7 @@
 #pragma once
 #include"timey_pch.h"
 #include"sqlite3.h"
+#include "QueryResult.h"
 
 namespace Timey {
 
@@ -16,6 +17,7 @@ namespace Timey {
 		Query(const std::string& query, CoreDataBase* db);
 		~Query();
 		
+
 		template <class T>
 		void Bind(int idx, T param) {
 
@@ -38,14 +40,14 @@ namespace Timey {
 		};
 
 		template<>
-		void Bind<const char*>(int idx, const char* param) {
-			int ok = sqlite3_bind_text(_stmt, idx, param, -1, nullptr);
+		void Bind<const std::string&>(int idx, const std::string& param) {
+			int ok = sqlite3_bind_text(_stmt, idx, param.c_str(), -1, nullptr);
 			_COSTOM_BINDING_ASSERT(ok);
 		};
 
-
-
 		void Unbind();
+		QueryResult* Exec();
+
 	private:
 		sqlite3_stmt* _stmt;
 		CoreDataBase* _database;

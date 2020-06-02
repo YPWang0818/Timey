@@ -11,7 +11,9 @@ namespace Timey {
 	{
 		int ok = sqlite3_prepare_v2(_database->getSqliteDb(), query.c_str(), -1, &_stmt, nullptr);
 		if (ok != SQLITE_OK) {
-			TIMEY_CORE_ERROR("[Sqlite3] Preparing Failure {0}", ok);
+			TIMEY_CORE_ERROR("[Sqlite3] stmt compile faliure {0}", ok);
+			const char* msg = sqlite3_errmsg(_database->getSqliteDb());
+			TIMEY_CORE_ERROR("[Sqlite3] {0}", msg);
 			TIMEY_CORE_ASSERT(false, "");
 		};
 		
@@ -25,6 +27,11 @@ namespace Timey {
 	void Query::Unbind()
 	{
 		sqlite3_clear_bindings(_stmt);
+	}
+
+	QueryResult* Query::Exec()
+	{
+		return new QueryResult(_stmt);
 	}
 
 }
