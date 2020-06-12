@@ -8,7 +8,7 @@ namespace Timey {
 	std::shared_ptr<spdlog::logger> Log::s_clientlogger;
 
 	void Log::Init() {
-		spdlog::set_pattern("%^[%l %T] %n: %v%$");
+		spdlog::set_pattern("%^[%l %@] %n: %v %$");
 
 		Log::s_corelogger = spdlog::stdout_color_mt("TIMEY CORE");
 		s_corelogger->set_level(spdlog::level::trace);

@@ -8,12 +8,19 @@ namespace Timey {
 	QueryResult::QueryResult(sqlite3_stmt* stmt)
 		:_stmt(stmt)
 	{
-		while (sqlite3_step(_stmt) == SQLITE_ROW) {
+		int ok = sqlite3_step(_stmt);
+
+		while (ok == SQLITE_ROW) {
 			_row_count++;
-		}
+			ok = sqlite3_step(_stmt);
+		};
+		
+		if (ok != SQLITE_DONE) {
+			TIMEY_CORE_ERROR("[Sqlite3] Excacuting Failure. {0}", ok);
+		};
+	};
 
-
-	}
+	
 
 	SQLiteType QueryResult::getColumnType(unsigned int column)
 	{

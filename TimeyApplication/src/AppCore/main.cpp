@@ -46,38 +46,21 @@ int main(int argc, char** argv) {
 
 	//app->Run();
 
-	const std::string _create_table = R"(		
-	CREATE TABLE contacts (
-	contact_id INTEGER PRIMARY KEY,
-	first_name TEXT NOT NULL,
-	last_name TEXT NOT NULL,
-	email TEXT NOT NULL UNIQUE,
-	phone TEXT NOT NULL UNIQUE);
-		)";
+	Timey::Date day_1[4] = {
+		{2020, 6, 12, 5, 35, 26},
+		{2020, 6, 12, 6, 37, 4},
+		{2020, 6, 12, 8, 30, 0},
+		{2020, 6, 12, 9, 41, 58}
+	};
 
-	const std::string _find_schema = R"(
-	PRAGMA table_info(contacts)
-		)";
-
-	const std::string _insert_row = R"(
-	INSERT INTO contacts (first_name ,last_name , email, phone)
-	VALUES( 'yu-ping',	'wang' , 'i8181995@yahoo.com', 6319771679);
-		)";
 	
+	Timey::Session session_1 = { "Timey", "Working on Timey APP.", day_1[0], day_1[1], 3056.4f };
+	Timey::Session session_2 = { "Timey", "Planning on Timey APP.", day_1[2], day_1[3], 3444.4f };
 
-	const std::string _show_all = R"(
-		SELECT * FROM contacts;
-		)";
+	Timey::SessionDataBase* database = new Timey::SessionDataBase("../databases/test.db");
 
-	Timey::CoreDataBase* database = new Timey::CoreDataBase("../databases/example.db");
-	Timey::Query* query = new Timey::Query(_show_all, database);
-	Timey::QueryResult* qres = query->Exec();
-
-	_dump_all_info(qres);
-
-	delete qres;
-	delete query;
-	delete database;
+	database->AddSession(session_1);
+	database->AddSession(session_2);
 
 };
 
