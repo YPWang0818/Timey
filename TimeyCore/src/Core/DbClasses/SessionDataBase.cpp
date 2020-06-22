@@ -7,6 +7,7 @@ namespace Timey {
 	:CoreDataBase(filename)
 	{
 		_setup_add_session_query();
+		_setup_fetch_session_query();
 	}
 
 
@@ -29,6 +30,8 @@ namespace Timey {
 		add_session->Bind<int>(13, session.end_time.second);
 		add_session->Bind<const std::string& >(14, session.name);
 		add_session->Bind<const std::string& >(15, session.discription);
+		add_session->Bind<int>(16, session.project_id);
+	
 
 		add_session->ExecOnceNoRes();
 		add_session->Unbind();
@@ -36,18 +39,78 @@ namespace Timey {
 	}
 	void SessionDataBase::DeleteSession(const Session& session)
 	{
+
 	}
-	void SessionDataBase::FetchSession(uint32_t session_id)
+
+	std::shared_ptr<Session> SessionDataBase::FetchSession(uint32_t session_id)
 	{
-	}
+		std::shared_ptr<Query> fetch_session = getQueries()["fetch_session"];
+		fetch_session->Bind<int>(1, session_id);
+
+		auto res = std::unique_ptr<QueryResult>(fetch_session->Exec());
+
+		Date start_time = { 
+			(res->getColumn<int>(2))[0], //y
+			(res->getColumn<int>(3))[0], //m
+			(res->getColumn<int>(4))[0], //d
+			(res->getColumn<int>(5))[0], //h
+			(res->getColumn<int>(6))[0], //m
+			(res->getColumn<int>(7))[0], //s
+		};
+
+		Date end_time = {
+			(res->getColumn<int>(8))[0], //y
+			(res->getColumn<int>(9))[0], //m
+			(res->getColumn<int>(10))[0], //d
+			(res->getColumn<int>(11))[0], //h
+			(res->getColumn<int>(12))[0], //m
+			(res->getColumn<int>(13))[0], //s
+		};
+		
+		std::string discription;
+
+		if (res->getColumnType(15) != SQLiteType::null) {
+			discription = (res->getColumn<std::string>(15))[0];
+		}
+		else {
+			discription = "";
+		};
+
+		// tmep code
+		res->DumpAllTable();
+
+		Session* session = new Session (
+			(res->getColumn<int>(0))[0], // session_id
+			(res->getColumn<std::string>(14))[0], // title
+			discription, // discription
+			start_time, // start time
+			end_time, // end time
+			(res->getColumn<double>(1))[0], //duration
+			(res->getColumn<int>(16))[0] // project id
+		);
+
+		return std::shared_ptr<Session>(session);
+	};
+
 	void SessionDataBase::_setup_add_session_query()
 	{
-		static const std::string add_session_query = R"(INSERT INTO sessions (duration, start_year , start_month, start_day, start_hour, start_minute, start_second, end_year, end_month, end_day, end_hour, end_minute, end_second, title, discription)      VALUES(?1, ?2 ,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15);
+		static const std::string add_session_query = R"(INSERT INTO sessions (duration, start_year , start_month, start_day, start_hour, start_minute, start_second, end_year, end_month, end_day, end_hour, end_minute, end_second, title, discription, project_id)      VALUES(?1, ?2 ,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16);
 			)";
 
 		std::shared_ptr<Query> add_session = std::make_shared<Query>(add_session_query, this);
 
 		this->AddQuery("add_session", add_session);
+
+	}
+
+	void SessionDataBase::_setup_fetch_session_query()
+	{
+		static const std::string fetch_session_query = R"(
+		SELECT * FROM sessions WHERE session_id == ?1;
+		)";
+
+		std::shared_ptr<Query> fetch_session = std::make_shared<Query>(fetch_session_query, this);
+		this->AddQuery("fetch_session", fetch_session);
 
 	}
 }

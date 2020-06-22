@@ -12,10 +12,11 @@ namespace Timey {
 		SessionDataBase(const std::string& filename);
 		void AddSession(const Session& session);
 		void DeleteSession(const Session& session);
-		void FetchSession(uint32_t session_id);
+		std::shared_ptr<Session> FetchSession(uint32_t session_id);
 
 	private:
 		void _setup_add_session_query();
+		void _setup_fetch_session_query();
 
 	};
 

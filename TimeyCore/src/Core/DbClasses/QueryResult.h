@@ -2,7 +2,9 @@
 #include "timey_pch.h"
 #include "sqlite3.h"
 
+
 namespace Timey {
+
 
 	enum class SQLiteType {
 		integer = SQLITE_INTEGER,
@@ -32,6 +34,8 @@ namespace Timey {
 		inline int getColumnCount() const { return sqlite3_column_count(_stmt);  };
 		inline int getRowCount() const { return _row_count;  };
 		inline bool isEmpty() { return !(_row_count); };
+
+		void DumpAllTable();
 
 		template<class T>
 		std::vector<T> getColumn(unsigned int  column) {
@@ -131,9 +135,18 @@ namespace Timey {
 		int _row_count = 0;
 		sqlite3_stmt* _stmt;
 
+
+	private:
+
+		template<class T>
+		void static _print_column(const std::vector<T>& data)
+		{
+			for (auto it = data.begin(); it != data.end(); ++it) {
+				TIMEY_TRACE("{0}", *it);
+			}
+		}
 		
 	};
-
 
 
 

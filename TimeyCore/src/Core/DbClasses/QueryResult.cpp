@@ -32,4 +32,31 @@ namespace Timey {
 		return static_cast<SQLiteType>(type);
 	}
 
+	void QueryResult::DumpAllTable() {
+		
+
+		int col_num = this->getColumnCount();
+
+		if (this->isEmpty()) {
+			TIMEY_INFO("Empty Query");
+			return;
+		}
+
+		for (int i = 0; i < col_num; i++) {
+
+			TIMEY_INFO("---- column {0} -----", i);
+
+			switch (this->getColumnType(i))
+			{
+			case Timey::SQLiteType::integer:   _print_column<int>(this->getColumn<int>(i)); break;
+			case Timey::SQLiteType::real:	   _print_column<double>(this->getColumn<double>(i)); break;
+			case Timey::SQLiteType::text:     _print_column<std::string>(this->getColumn<std::string>(i)); break;
+			case Timey::SQLiteType::blob:	  TIMEY_INFO("blob unsupported."); break;
+			case Timey::SQLiteType::null:	  TIMEY_INFO("NULL column"); break;
+
+			}
+
+		}
+
+	};
 }
