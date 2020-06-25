@@ -49,7 +49,7 @@ namespace Timey {
 		std::vector<std::shared_ptr<Tag>> tag_list;
 
 		Session(uint32_t ID, const std::string& name, const std::string& discription, Date start_time, Date end_time, float duration, uint32_t project_ID)
-			:BaseObject(name),
+			:BaseObject(name, ID),
 			discription(discription),
 			start_time(start_time),
 			end_time(end_time), 

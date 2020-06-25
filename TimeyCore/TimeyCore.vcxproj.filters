@@ -311,6 +311,7 @@
     <ClInclude Include="src\Core\DbClasses\QueryResult.h" />
     <ClInclude Include="src\Core\DbClasses\SessionDataBase.h" />
     <ClInclude Include="src\Core\Object.h" />
+    <ClInclude Include="src\Core\FileManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -323,5 +324,6 @@
     <ClCompile Include="src\Core\DbClasses\Query.cpp" />
     <ClCompile Include="src\Core\DbClasses\QueryResult.cpp" />
     <ClCompile Include="src\Core\DbClasses\SessionDataBase.cpp" />
+    <ClCompile Include="src\Core\FileManager.cpp" />
   </ItemGroup>
 </Project>

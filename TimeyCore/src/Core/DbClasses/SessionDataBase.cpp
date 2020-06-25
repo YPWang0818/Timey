@@ -8,6 +8,7 @@ namespace Timey {
 	{
 		_setup_add_session_query();
 		_setup_fetch_session_query();
+		_setup_delete_session_query();
 	}
 
 
@@ -39,7 +40,16 @@ namespace Timey {
 	}
 	void SessionDataBase::DeleteSession(const Session& session)
 	{
+		std::shared_ptr<Query> delete_session = getQueries()["delete_session"];
 
+		if (!session.ID) {
+			TIMEY_CORE_WARN("No session ID found.");
+			return;
+		}
+
+		delete_session->Bind<int>(1, session.ID);
+		delete_session->ExecOnceNoRes();
+		delete_session->Unbind();
 	}
 
 	std::shared_ptr<Session> SessionDataBase::FetchSession(uint32_t session_id)
@@ -48,6 +58,12 @@ namespace Timey {
 		fetch_session->Bind<int>(1, session_id);
 
 		auto res = std::unique_ptr<QueryResult>(fetch_session->Exec());
+
+		if (res->getRowCount() == 0) {
+			fetch_session->Unbind();
+			TIMEY_CORE_ERROR("No session found. Return Nullptr.");
+			return nullptr; 
+		};
 
 		Date start_time = { 
 			(res->getColumn<int>(2))[0], //y
@@ -76,8 +92,6 @@ namespace Timey {
 			discription = "";
 		};
 
-		// tmep code
-		res->DumpAllTable();
 
 		Session* session = new Session (
 			(res->getColumn<int>(0))[0], // session_id
@@ -89,6 +103,7 @@ namespace Timey {
 			(res->getColumn<int>(16))[0] // project id
 		);
 
+		fetch_session->Unbind();
 		return std::shared_ptr<Session>(session);
 	};
 
@@ -97,9 +112,8 @@ namespace Timey {
 		static const std::string add_session_query = R"(INSERT INTO sessions (duration, start_year , start_month, start_day, start_hour, start_minute, start_second, end_year, end_month, end_day, end_hour, end_minute, end_second, title, discription, project_id)      VALUES(?1, ?2 ,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16);
 			)";
 
-		std::shared_ptr<Query> add_session = std::make_shared<Query>(add_session_query, this);
 
-		this->AddQuery("add_session", add_session);
+		this->AddQuery("add_session", std::make_shared<Query>(add_session_query, this));
 
 	}
 
@@ -109,8 +123,16 @@ namespace Timey {
 		SELECT * FROM sessions WHERE session_id == ?1;
 		)";
 
-		std::shared_ptr<Query> fetch_session = std::make_shared<Query>(fetch_session_query, this);
-		this->AddQuery("fetch_session", fetch_session);
+		this->AddQuery("fetch_session", std::make_shared<Query>(fetch_session_query, this));
+
+	}
+	void SessionDataBase::_setup_delete_session_query()
+	{
+		static const std::string delete_session_query = R"(
+		DELETE FROM sessions WHERE session_id == ?1 ;
+		)";
+
+		this->AddQuery("delete_session", std::make_shared<Query>(delete_session_query, this));
 
 	}
 }

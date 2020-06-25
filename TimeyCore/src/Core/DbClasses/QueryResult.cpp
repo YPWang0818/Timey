@@ -16,8 +16,10 @@ namespace Timey {
 		};
 		
 		if (ok != SQLITE_DONE) {
-			TIMEY_CORE_ERROR("[Sqlite3] Excacuting Failure. {0}", ok);
+			TIMEY_CORE_ERROR("[Sqlite3] Executing Failure. {0} \n", ok);
 		};
+
+		sqlite3_reset(_stmt);
 	};
 
 	

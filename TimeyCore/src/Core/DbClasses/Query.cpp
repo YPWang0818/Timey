@@ -52,8 +52,8 @@ namespace Timey {
 	{
 		if ((ok != SQLITE_OK)) {
 			const char* msg = sqlite3_errmsg(_database->getSqliteDb());
-			TIMEY_CORE_ERROR("[Sqlite3] Binding Failure.");
-			TIMEY_CORE_ASSERT(false, msg)
+			TIMEY_CORE_ERROR("[Sqlite3] Binding Failure.\n");
+			TIMEY_CORE_ASSERT(false, msg);
 		};
 		
 	}

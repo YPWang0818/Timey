@@ -17,7 +17,7 @@ namespace Timey {
 	private:
 		void _setup_add_session_query();
 		void _setup_fetch_session_query();
-
+		void _setup_delete_session_query();
 	};
 
 

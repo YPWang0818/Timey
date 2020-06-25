@@ -2,6 +2,7 @@
 
 #include "Core/Log.h"
 #include "Core/Object.h"
+#include "Core/FileManager.h"
 
 //databases
 
