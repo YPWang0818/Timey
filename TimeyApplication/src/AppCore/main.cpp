@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 	}
 
 	Timey::Session session_1 = { "Timey", "Working on Timey APP.", day_1[0], day_1[1], 3056.4f, 3 };
-	Timey::Session session_2 = { "Timey", "Planning on Timey APP.", day_1[2], day_1[3], 3444.4f, 3 };
+	Timey::Session session_2 = { "Timey2", "Planning on Timey APP.", day_1[2], day_1[3], 3444.4f, 3 };
 
 	Timey::SessionDataBase* database = new Timey::SessionDataBase("../databases/test.db");
 
@@ -42,11 +42,17 @@ int main(int argc, char** argv) {
 	std::shared_ptr<Timey::Session> s1 = database->FetchSession(1);
 	std::shared_ptr<Timey::Session> s2 = database->FetchSession(2);
 	
-	TIMEY_CORE_INFO("{0}, {1}", s1->ID, s2->ID);
+	TIMEY_INFO("[Session 1]\n{0}", *s1);
+	TIMEY_INFO("[Session 2]\n{0}", *s2);
 
-	database->DeleteSession( *(s1.get()) );
+	database->DeleteSession( *s1 );
+
+	TIMEY_INFO("******* Delete session 1 *******");
 
 	std::shared_ptr<Timey::Session> s3 = database->FetchSession(1);
 	std::shared_ptr<Timey::Session> s4 = database->FetchSession(2);
+
+
+	TIMEY_INFO("[Session 2]\n{0}", *s4);
 };
 
