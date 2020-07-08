@@ -3,6 +3,7 @@
 #include "Core/DbClasses/CoreDataBase.h"
 #include "Core/Object.h"
 
+
 namespace Timey {
 
 	class SessionDataBase : public CoreDataBase

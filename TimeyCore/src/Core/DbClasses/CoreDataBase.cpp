@@ -1,6 +1,7 @@
 #include "timey_pch.h"
 #include"CoreDataBase.h"
 #include"Query.h"
+#include "FileManager.h"
 
 namespace Timey {
 
@@ -128,15 +129,30 @@ CREATE TABLE tags_projects (
 	CoreDataBase::CoreDataBase(const std::string& file_name)
 		:_file_name(file_name)
 	{
-		// Needs to find if the database exists, if not, create one with the correct scheme.
-		int ok = sqlite3_open(_file_name.c_str(), &_db);
+
+		FileManager& file_manager = FileManager::getFileManager();
+
+		if (!file_manager.FindIfFileExists(_file_name)) {
+			// Database not found, create a new one. 
+
+			int ok = sqlite3_open_v2(_file_name.c_str(), &_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+			if (ok != SQLITE_OK) {
+				TIMEY_ERROR("[Sqlite3] Failed to open file {0}", _file_name.c_str());
+				const char* msg = sqlite3_errmsg(_db);
+				TIMEY_CORE_ERROR("[Sqlite3] {0}", msg);
+			}
+			_create_data_base();
+		}
+
+		int ok = sqlite3_open_v2(_file_name.c_str(), &_db, SQLITE_OPEN_READWRITE, nullptr);
 		if (ok != SQLITE_OK) {
 			TIMEY_ERROR("[Sqlite3] Failed to open file {0}", _file_name.c_str());
 			const char* msg = sqlite3_errmsg(_db);
 			TIMEY_CORE_ERROR("[Sqlite3] {0}", msg);
 		}
 
-		_create_data_base();
+
+		
 	}
 
 	CoreDataBase::~CoreDataBase() {

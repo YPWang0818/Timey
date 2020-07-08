@@ -24,7 +24,6 @@ int main(int argc, char** argv) {
 	GetCurrentDirectoryA(300, current_dir);
 	TIMEY_INFO("current direcltory: {0}", current_dir);
 	*/
-
 	Timey::FileManager& file_manager = Timey::FileManager::getFileManager();
 
 	if (file_manager.FindIfFileExists("../databases/test.db")) {
