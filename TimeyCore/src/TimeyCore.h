@@ -10,3 +10,5 @@
 #include "Core/DbClasses/Query.h"
 #include "Core/DbClasses/QueryResult.h"
 #include "Core/DbClasses/SessionDataBase.h"
+#include "Core/DbClasses/TagDataBase.h"
+#include "Core/DbClasses/ProjectDataBase.h"

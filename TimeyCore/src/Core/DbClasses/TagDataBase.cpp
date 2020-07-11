@@ -18,10 +18,10 @@ namespace Timey {
 	{
 		std::shared_ptr<Query> add_tag = getQueries()["add_tag"];
 
-		add_tag->Bind<double>(1, tag.tag_color.r);
-		add_tag->Bind<double>(2, tag.tag_color.g);
-		add_tag->Bind<double>(3, tag.tag_color.b);
-		add_tag->Bind<double>(4, tag.tag_color.a);
+		add_tag->Bind<double>(1, static_cast<double>(tag.tag_color.r));
+		add_tag->Bind<double>(2, static_cast<double>(tag.tag_color.g));
+		add_tag->Bind<double>(3, static_cast<double>(tag.tag_color.b));
+		add_tag->Bind<double>(4, static_cast<double>(tag.tag_color.a));
 
 		add_tag->Bind<const std::string&>(5, tag.name);
 		add_tag->Bind<int>(6, tag.tag_group_id);

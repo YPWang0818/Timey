@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Object.h"
-#include "DbClasses/CoreDataBase.h"
+#include "Core/DbClasses/CoreDataBase.h"
 
 
 namespace Timey {
