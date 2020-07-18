@@ -34,8 +34,12 @@ int main(int argc, char** argv) {
 	Timey::Session session_1 = { "Timey", "Working on Timey APP.", day_1[0], day_1[1], 3056.4f, 3 };
 	Timey::Session session_2 = { "Timey2", "Planning on Timey APP.", day_1[2], day_1[3], 3444.4f, 3 };
 
-	Timey::Tag tag_1 = { "Coding", c_red, 3 };
-	Timey::Tag tag_2 = { "High level planning", c_blue, 4 };
+	Timey::Tag tag_1 = { "Coding", c_red, 0 };
+	Timey::Tag tag_2 = { "High level planning", c_blue, 0};
+
+	Timey::TagGroup tag_group_1 = { 13 , "Computer Science ", 1 };
+
+	TIMEY_TRACE("[Tag gorup] {0}\n", tag_group_1);
 
 	Timey::Project project_1 = { "Timey", "A time tracking app.", c_blue, 5 };
 	Timey::Project project_2 = { "Untited game engine", "Mini game engine", c_red, 6};
@@ -82,7 +86,8 @@ int main(int argc, char** argv) {
 
 	std::shared_ptr<Timey::Tag> t3 = tag_db->FetchTag(1);
 	std::shared_ptr<Timey::Tag> t4 = tag_db->FetchTag(2);
-
+	tag_db->UpdateTagGroup(*t4, tag_group_1);
+	t4 = tag_db->FetchTag(2);
 
 	std::shared_ptr<Timey::Project> p3 = project_db->FetchProject(1);
 	std::shared_ptr<Timey::Project> p4 = project_db->FetchProject(2);

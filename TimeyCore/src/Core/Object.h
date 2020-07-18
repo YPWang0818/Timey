@@ -10,16 +10,57 @@ namespace Timey {
 
 		virtual std::string toString() const = 0;
 	protected:
-		BaseObject(const std::string name, uint32_t id)
-			:name(name), ID(id) {};
-
+		BaseObject(uint32_t id, const std::string name)
+			:ID(id), name(name) {};
 		BaseObject(const std::string name)
-			:BaseObject(name, 0) // ID = 0 implies the ID haven't been retrieved form the database yet.
-		{};
+			:name(name), ID(0) {}; // the initial ID is 0 if the object is created first time. 
+	
 
 		
 	};
 
+	struct GroupObject : public BaseObject
+	{
+		uint32_t parentID;
+
+	protected:
+		GroupObject(uint32_t ID, const std::string& name, uint32_t parent_id)
+			:BaseObject(ID, name), parentID(parent_id) {};
+		GroupObject(const std::string& name, uint32_t parent_id)
+			:BaseObject(name), parentID(parent_id) {};
+	};
+
+	struct TagGroup : public GroupObject
+	{
+	public:
+		TagGroup(uint32_t ID, const std::string& name, uint32_t parent_id)
+			:GroupObject(ID, name, parent_id) {};
+		TagGroup(const std::string& name, uint32_t parent_id)
+			:GroupObject(name, parent_id) {};
+
+		std::string toString() const override {
+			std::stringstream ss;
+			ss << "Name: " << name << " ID: " << ID << " Parent ID: " << parentID << "\n";
+			return ss.str();
+		};
+
+	};
+
+	struct ProjectGroup : public GroupObject
+	{
+	public:
+		ProjectGroup(uint32_t ID, const std::string& name, uint32_t parent_id)
+			:GroupObject(ID, name, parent_id) {};
+		ProjectGroup(const std::string& name, uint32_t parent_id)
+			:GroupObject(name, parent_id) {};
+
+		std::string toString() const override {
+			std::stringstream ss;
+			ss << "Name: " << name << "ID: " << ID << "Parent ID: " << parentID << "\n";
+			return ss.str();
+		};
+
+	};
 	struct Color {
 		float r;
 		float g;
@@ -54,10 +95,10 @@ namespace Timey {
 		int tag_group_id;
 
 		Tag(uint32_t ID, const std::string& name, Color color, int taggp_id)
-			:BaseObject(name, ID), tag_color(color), tag_group_id(taggp_id) {};
+			:BaseObject(ID, name), tag_color(color), tag_group_id(taggp_id) {};
 
 		Tag( const std::string& name, Color color, int taggp_id)
-			:Tag(0, name, color, taggp_id) {};
+			:BaseObject(name), tag_color(color), tag_group_id(taggp_id) {};
 
 		virtual std::string toString() const  override {
 
@@ -81,7 +122,7 @@ namespace Timey {
 		std::vector<std::shared_ptr<Tag>> tag_list;
 
 		Session(uint32_t ID, const std::string& name, const std::string& discription, Date start_time, Date end_time, float duration, uint32_t project_ID)
-			:BaseObject(name, ID),
+			:BaseObject(ID, name),
 			discription(discription),
 			start_time(start_time),
 			end_time(end_time), 
@@ -91,7 +132,13 @@ namespace Timey {
 		{};
 
 		Session(const std::string& name, const std::string discription, Date start_time, Date end_time, float duration, uint32_t project_ID = 0) 
-			:Session(0, name, discription, start_time, end_time, duration, project_ID) 
+			:BaseObject(name),
+			discription(discription),
+			start_time(start_time),
+			end_time(end_time),
+			duration(duration),
+			project_id(project_ID),
+			tag_list(std::vector<std::shared_ptr<Tag>>())
 		{}; // project_ID = 0 implies the session is in no projects.
 
 
@@ -128,12 +175,11 @@ namespace Timey {
 		std::vector<std::shared_ptr<Tag>> tag_list;
 
 		Project(uint32_t ID, const std::string& name, const std::string& discription, Color color, int prjgp_id)
-			:BaseObject(name, ID), project_color(color), discription(discription), project_group_id(prjgp_id), tag_list(std::vector<std::shared_ptr<Tag>>()) {};
+			:BaseObject(ID, name), project_color(color), discription(discription), project_group_id(prjgp_id), tag_list(std::vector<std::shared_ptr<Tag>>()) {};
 
 		Project(const std::string& name, const std::string& discription, Color color, int prjgp_id)
-			:Project(0, name, discription, color, prjgp_id)
-		{}
-
+			:BaseObject(name), project_color(color), discription(discription), project_group_id(prjgp_id), tag_list(std::vector<std::shared_ptr<Tag>>()) {};
+	
 
 		virtual std::string toString() const override {
 
