@@ -11,6 +11,7 @@ namespace Timey{
 		_setup_add_project_query();
 		_setup_fetch_project_query();
 		_setup_delete_project_query();
+		_setup_update_projects_group_query();
 
 	};
 
@@ -89,6 +90,22 @@ namespace Timey{
 		return std::shared_ptr<Project>(project);
 	}
 
+	void ProjectDataBase::UpdateProjectsGroup(const Project& project, const ProjectGroup& group)
+	{
+		std::shared_ptr<Query> update_projects_group = getQueries()["update_projects_group"];
+		if (!group.ID && !project.ID) {
+			TIMEY_CORE_WARN("Invaild Tag ID / TagGroup ID.");
+			return;
+		};
+
+		update_projects_group->Bind<int>(1, group.ID);
+		update_projects_group->Bind<int>(2, project.ID);
+
+		update_projects_group->ExecOnceNoRes();
+		update_projects_group->Unbind();
+
+	}
+
 	void ProjectDataBase::_setup_add_project_query()
 	{
 		static const std::string add_project_query = R"(INSERT INTO projects (color_r, color_g, color_b, color_a, title, discription, projects_group_id) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7);
@@ -115,6 +132,18 @@ namespace Timey{
 		)";
 
 		this->AddQuery("delete_project", std::make_shared<Query>(delete_project_query, this));
+	}
+
+	void ProjectDataBase::_setup_update_projects_group_query()
+	{
+
+		static const std::string update_projects_group_query = R"(
+			UPDATE projects
+			SET  projects_group_id = ?1
+			WHERE  project_id = ?2;
+		)";
+
+		this->AddQuery("update_projects_group", std::make_shared<Query>(update_projects_group_query, this));
 	}
 
 }

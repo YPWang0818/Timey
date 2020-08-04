@@ -14,13 +14,13 @@ namespace Timey {
 		void DeleteTag(const Tag& tag);
 		std::shared_ptr<Tag> FetchTag(uint32_t tag_id);
 
-		void UpdateTagGroup(Tag tag, TagGroup group);
+		void UpdateTagsGroup(const Tag& tag, const TagGroup& group);
 
 	private:
 		void _setup_add_tag_query();
 		void _setup_fetch_tag_query();
 		void _setup_delete_tag_query();
-		void _setup_update_tag_group_query();
+		void _setup_update_tags_group_query();
 
 
 	};

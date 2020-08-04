@@ -11,7 +11,7 @@ namespace Timey {
 		_setup_add_tag_query();
 		_setup_fetch_tag_query();
 		_setup_delete_tag_query();
-		_setup_update_tag_group_query();
+		_setup_update_tags_group_query();
 	}
 
 	void TagDataBase::AddTag(const Tag& tag)
@@ -76,19 +76,19 @@ namespace Timey {
 		return std::shared_ptr<Tag>(tag);
 	}
 
-	void TagDataBase::UpdateTagGroup(Tag tag, TagGroup group)
+	void TagDataBase::UpdateTagsGroup(const Tag& tag, const TagGroup& group)
 	{
-		std::shared_ptr<Query> update_tag_group = getQueries()["update_tag_group"];
+		std::shared_ptr<Query> update_tags_group = getQueries()["update_tags_group"];
 		if (!group.ID && !tag.ID) {
 			TIMEY_CORE_WARN("Invaild Tag ID / TagGroup ID.");
 			return;
 		};
 
-		update_tag_group->Bind<int>(1, group.ID);
-		update_tag_group->Bind<int>(2, tag.ID);
+		update_tags_group->Bind<int>(1, group.ID);
+		update_tags_group->Bind<int>(2, tag.ID);
 
-		update_tag_group->ExecOnceNoRes();
-		update_tag_group->Unbind();
+		update_tags_group->ExecOnceNoRes();
+		update_tags_group->Unbind();
 
 	}
 
@@ -122,15 +122,15 @@ namespace Timey {
 
 	}
 
-	void TagDataBase::_setup_update_tag_group_query()
+	void TagDataBase::_setup_update_tags_group_query()
 	{
-		static const std::string update_tag_group_query = R"(
+		static const std::string update_tags_group_query = R"(
 			UPDATE tags
 			SET  tags_group_id = ?1
 			WHERE  tag_id = ?2;
 		)";
 
-		this->AddQuery("update_tag_group", std::make_shared<Query>(update_tag_group_query, this));
+		this->AddQuery("update_tags_group", std::make_shared<Query>(update_tags_group_query, this));
 
 	}
 
