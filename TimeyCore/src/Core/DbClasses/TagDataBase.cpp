@@ -38,6 +38,7 @@ namespace Timey {
 			TIMEY_CORE_WARN("No tag ID found.");
 			return;
 		}
+		this->FetchTag(tag.ID); // Writes error msg when no tag is found. 
 
 		delete_tag->Bind<int>(1, tag.ID);
 		delete_tag->ExecOnceNoRes();

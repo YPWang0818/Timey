@@ -37,10 +37,12 @@ namespace Timey{
 	{
 		std::shared_ptr<Query> delete_project = getQueries()["delete_project"];
 
+
 		if (!project.ID) {
 			TIMEY_CORE_WARN("No project ID found.");
 			return;
 		}
+		this->FetchProject(project.ID); // If no project ID found, this funtion will print error msg. 
 
 		delete_project->Bind<int>(1, project.ID);
 		delete_project->ExecOnceNoRes();

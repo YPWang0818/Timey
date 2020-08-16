@@ -220,6 +220,8 @@
     <ClInclude Include="..\vendor\spdlog\include\spdlog\tweakme.h" />
     <ClInclude Include="..\vendor\spdlog\include\spdlog\version.h" />
     <ClInclude Include="src\Core\DbClasses\ProjectDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\GroupDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\ProjectGroupDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\TagDataBase.h" />
     <ClInclude Include="src\Core\FileManager.h" />
     <ClInclude Include="src\Core\Object.h" />
@@ -234,6 +236,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectDataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\ProjectGroupDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\Query.cpp" />
     <ClCompile Include="src\Core\DbClasses\QueryResult.cpp" />
     <ClCompile Include="src\Core\DbClasses\SessionDataBase.cpp" />

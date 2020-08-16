@@ -46,6 +46,7 @@ namespace Timey {
 			TIMEY_CORE_WARN("No session ID found.");
 			return;
 		}
+		this->FetchSession(session.ID)// Write error msg when no session is found. 
 
 		delete_session->Bind<int>(1, session.ID);
 		delete_session->ExecOnceNoRes();
