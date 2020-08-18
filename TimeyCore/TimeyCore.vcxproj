@@ -223,6 +223,7 @@
     <ClInclude Include="src\Core\DbClasses\GroupDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\ProjectGroupDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\TagDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\TagGroupDataBase.h" />
     <ClInclude Include="src\Core\FileManager.h" />
     <ClInclude Include="src\Core\Object.h" />
     <ClInclude Include="src\Core\DbClasses\CoreDataBase.h" />
@@ -241,6 +242,7 @@
     <ClCompile Include="src\Core\DbClasses\QueryResult.cpp" />
     <ClCompile Include="src\Core\DbClasses\SessionDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\TagDataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\TagGroupDataBase.cpp" />
     <ClCompile Include="src\Core\FileManager.cpp" />
     <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="src\timey_pch.cpp">

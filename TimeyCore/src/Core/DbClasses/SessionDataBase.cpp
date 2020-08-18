@@ -14,6 +14,8 @@ namespace Timey {
 
 	void SessionDataBase::AddSession(const Session& session)
 	{
+		// Needs to deal with the case when there is already a session_id.
+
 		std::shared_ptr<Query> add_session = getQueries()["add_session"];
 
 		add_session->Bind<double>(1, static_cast<double>(session.duration));
@@ -46,7 +48,7 @@ namespace Timey {
 			TIMEY_CORE_WARN("No session ID found.");
 			return;
 		}
-		this->FetchSession(session.ID)// Write error msg when no session is found. 
+		this->FetchSession(session.ID);// Write error msg when no session is found. 
 
 		delete_session->Bind<int>(1, session.ID);
 		delete_session->ExecOnceNoRes();

@@ -4,20 +4,21 @@
 
 namespace Timey {
 
-	class ProjectGroupDataBase : public GroupDataBase {
+	class TagGroupDataBase : public GroupDataBase {
 
 	public:
-		ProjectGroupDataBase(const std::string& filename);
+		TagGroupDataBase(const std::string& filename);
 
-		inline void AddProjectGroup(const ProjectGroup& project_group) { _add_group_object(project_group); };
-		inline void DeleteProjectGroup(const ProjectGroup& project_group) { _delete_group_object(project_group); };
 
-		inline std::shared_ptr<ProjectGroup> FetchProjectGroup(uint32_t project_group_id) {
-			return std::static_pointer_cast<ProjectGroup>(_fetch_group_object(project_group_id));
+		inline void AddTagGroup(const TagGroup& tag_group) { _add_group_object(tag_group); };
+		inline void DeleteTagGroup(const TagGroup& tag_group) { _delete_group_object(tag_group); };
+
+		inline std::shared_ptr<TagGroup> FetchTagGroup(uint32_t tag_group_id) {
+			return std::static_pointer_cast<TagGroup>(_fetch_group_object(tag_group_id));
 		};
 
-
 	private:
+
 		virtual void _setup_add_group_object_query() override;
 		virtual void _setup_delete_group_object_query() override;
 		virtual void _setup_fetch_group_object_query() override;

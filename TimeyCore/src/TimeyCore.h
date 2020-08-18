@@ -12,3 +12,6 @@
 #include "Core/DbClasses/SessionDataBase.h"
 #include "Core/DbClasses/TagDataBase.h"
 #include "Core/DbClasses/ProjectDataBase.h"
+#include "Core/DbClasses/ProjectGroupDataBase.h"
+#include "Core/DbClasses/TagGroupDataBase.h"
+#include "Core/DbClasses/GroupDataBase.h"

@@ -21,7 +21,7 @@ namespace Timey {
 		// The implmentation for project group.
 
 		const std::string add_projects_group_query = R"(
-			INSERT INTO projects_group (name, parent_id) VALUES(1?, 2?);
+			INSERT INTO projects_group (name, parent_id) VALUES(?1, ?2);
 		)";
 		this->AddQuery("add_projects_group", std::make_shared<Query>(add_projects_group_query, this));
 	}
@@ -50,33 +50,33 @@ namespace Timey {
 	{
 		std::shared_ptr<Query> add_projects_group = getQueries()["add_projects_group"];
 		add_projects_group->Bind<const std::string&>(1, group_obj.name);
-		add_projects_group->Bind<int>(1, group_obj.ID);
+		add_projects_group->Bind<int>(2, group_obj.parentID);
 
 		add_projects_group->ExecOnceNoRes();
 		add_projects_group->Unbind();
 	}
 
-	void ProjectGroupDataBase::_delete_group_object(const GroupObject& project_gp)
+	void ProjectGroupDataBase::_delete_group_object(const GroupObject& group_obj)
 	{
 		std::shared_ptr<Query> delete_projects_group = getQueries()["delete_projects_group"];
 
-		if (!project_gp.ID) {
+		if (!group_obj.ID) {
 			TIMEY_CORE_WARN("No projects group ID found.");
 			return;
 		}
-		this->_fetch_group_object(project_gp.ID) // Write error msg when no project_gp is found. 
+		this->_fetch_group_object(group_obj.ID); // Write error msg when no project_gp is found. 
 
-		delete_projects_group->Bind<int>(1, project_gp.ID);
+		delete_projects_group->Bind<int>(1, group_obj.ID);
 		delete_projects_group->ExecOnceNoRes();
 		delete_projects_group->Unbind();
 	}
 
-	std::shared_ptr<GroupObject> ProjectGroupDataBase::_fetch_group_object(uint32_t project_gp_id)
+	std::shared_ptr<GroupObject> ProjectGroupDataBase::_fetch_group_object(uint32_t group_obj_id)
 	{
 
 		std::shared_ptr<Query> fetch_projects_group = getQueries()["fetch_projects_group"];
 
-		fetch_projects_group->Bind<int>(1, project_gp_id);
+		fetch_projects_group->Bind<int>(1, group_obj_id);
 		auto res = std::unique_ptr<QueryResult>(fetch_projects_group->Exec());
 
 		if (res->getRowCount() == 0) {

@@ -316,6 +316,7 @@
     <ClInclude Include="src\Core\DbClasses\ProjectDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\GroupDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\ProjectGroupDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\TagGroupDataBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -332,5 +333,6 @@
     <ClCompile Include="src\Core\DbClasses\TagDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectGroupDataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\TagGroupDataBase.cpp" />
   </ItemGroup>
 </Project>
