@@ -4,10 +4,43 @@
     <Filter Include="AppCore">
       <UniqueIdentifier>{EF2D9C9C-5B0D-1B38-6425-A60ED0838199}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Events">
+      <UniqueIdentifier>{3A8963B1-262B-8E87-0FE6-A1DBFB2615D8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform">
+      <UniqueIdentifier>{2AC788B4-1694-E3BF-3FAD-D1672BD9184E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform\Win32">
+      <UniqueIdentifier>{8C36D494-7804-C89A-6198-38C14D05A4FF}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AppCore\Application.h">
       <Filter>AppCore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AppCore\BaseWindow.h">
+      <Filter>AppCore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events\ApplicationEvents.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events\Event.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events\KeyEvents.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events\MouseEvents.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events\TimeyEvents.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events\WindowEvents.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Win32\Win32Windows.h">
+      <Filter>Platform\Win32</Filter>
     </ClInclude>
     <ClInclude Include="src\timey_pch.h" />
   </ItemGroup>
@@ -15,8 +48,17 @@
     <ClCompile Include="src\AppCore\Application.cpp">
       <Filter>AppCore</Filter>
     </ClCompile>
+    <ClCompile Include="src\AppCore\BaseWindow.cpp">
+      <Filter>AppCore</Filter>
+    </ClCompile>
     <ClCompile Include="src\AppCore\main.cpp">
       <Filter>AppCore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Win32\Win32Window.cpp">
+      <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Win32\timey_pch.cpp">
+      <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="src\timey_pch.cpp" />
   </ItemGroup>

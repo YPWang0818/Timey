@@ -10,7 +10,9 @@ workspace "Timey"
 	IncludeDir = {}
 	IncludeDir["sqlite3"] = "vendor/sqlite3"
 	IncludeDir["spdlog"] = "vendor/spdlog/include"
-	
+	IncludeDir["imgui"] = "vendor/imgui"
+	IncludeDir["glad"] = "vendor/glad/include"
+	IncludeDir["glfw"] = "vendor/glfw/include"
 	
 	outdir = "%{cfg.buildcfg}_%{cfg.architecture}_%{cfg.system}"
 	workdir = "%{wks.location}"
@@ -46,7 +48,10 @@ workspace "Timey"
 			"TimeyApplication/src/AppCore",
 			"TimeyCore/src",
 			"%{IncludeDir.sqlite3}",
-			"%{IncludeDir.spdlog}"
+			"%{IncludeDir.spdlog}",
+			"%{IncludeDir.imgui}",
+			"%{IncludeDir.glad}",
+			"%{IncludeDir.glfw}"
 			}
 			
 		links{	"TimeyCore"
@@ -94,8 +99,7 @@ workspace "Timey"
 			"%{prj.name}/src/**.h",
 			"%{prj.name}/src/**.hpp",
 			"%{prj.name}/src/**.cpp",
-			"%{prj.name}/src/**.c",
-			"%{IncludeDir.spdlog}/spdlog/**.h"
+			"%{prj.name}/src/**.c"
 		}
 		
 		
@@ -104,11 +108,18 @@ workspace "Timey"
 			"TimeyCore/src",
 			"TimeyCore/src/Core",
 			"%{IncludeDir.sqlite3}",
-			"%{IncludeDir.spdlog}"
+			"%{IncludeDir.spdlog}",
+			"%{IncludeDir.imgui}",
+			"%{IncludeDir.glad}",
+			"%{IncludeDir.glfw}"
 		}
 		
 		links{	
-		"sqlite3"
+		"sqlite3",
+		"imgui",
+		"spdlog",
+		"glad",
+		"GLFW"
 		}
 		
 		filter {"system:windows"}
@@ -137,4 +148,8 @@ workspace "Timey"
 	
 	group "Dependencies"
 		include "vendor/sqlite3"
+		include "vendor/imgui"
+		include "vendor/spdlog"
+		include "vendor/glad"
+		include "vendor/glfw"
 	group ""

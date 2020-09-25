@@ -1,21 +1,30 @@
-project "sqlite3"
+project "glad"
 	kind "StaticLib"
 	language "C"
-
+	cppdialect "C++17"
+	staticruntime "On"
+			
 	targetdir (workdir .. "/bin/" .. outdir .. "/%{prj.name}")
 	objdir (workdir .. "/obj/" .. outdir .. "/%{prj.name}")
 
 	files
-	{	"sqlite3.c",
-		"sqlite3.h"
+	{	"include/glad/glad.h",
+		"include/KHR/khrplatform.h",
+		"src/glad.c"
 		}
 	
-
 	
+
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "On"
 		
+		includedirs { "include" }
+
+		defines 
+		{ 
+			"GLFW_INCLUDE_NONE"
+		}
+
 
 	filter "configurations:Debug"
 		runtime "Debug"
