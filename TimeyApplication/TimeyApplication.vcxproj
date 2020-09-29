@@ -145,6 +145,8 @@
     <ClInclude Include="src\Events\WindowEvents.h" />
     <ClInclude Include="src\Platform\Win32\Win32Windows.h" />
     <ClInclude Include="src\timey_pch.h" />
+    <ClInclude Include="src\UI\ImguiBackend.h" />
+    <ClInclude Include="src\UI\UILayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppCore\Application.cpp" />
@@ -156,6 +158,8 @@
       <ObjectFileName>$(IntDir)\timey_pch1.obj</ObjectFileName>
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\UI\ImguiBackend.cpp" />
+    <ClCompile Include="src\UI\UILayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TimeyCore\TimeyCore.vcxproj">

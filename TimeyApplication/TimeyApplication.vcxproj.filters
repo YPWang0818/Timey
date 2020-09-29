@@ -43,6 +43,8 @@
       <Filter>Platform\Win32</Filter>
     </ClInclude>
     <ClInclude Include="src\timey_pch.h" />
+    <ClInclude Include="src\UI\ImguiBackend.h" />
+    <ClInclude Include="src\UI\UILayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppCore\Application.cpp">
@@ -61,5 +63,7 @@
       <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="src\timey_pch.cpp" />
+    <ClCompile Include="src\UI\ImguiBackend.cpp" />
+    <ClCompile Include="src\UI\UILayer.cpp" />
   </ItemGroup>
 </Project>

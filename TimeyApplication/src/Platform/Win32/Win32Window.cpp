@@ -234,7 +234,7 @@ namespace Timey {
 	{
 		m_contex->makeContexCurrent();
 		glfwPollEvents();
-		glClear(GL_COLOR_BUFFER_BIT);
+
 		m_contex->SwapBuffers();
 
 	};

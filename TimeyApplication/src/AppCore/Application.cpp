@@ -1,8 +1,11 @@
 #include "timey_pch.h"
-#include "Application.h"
-#include "TimeyCore.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+
+#include "TimeyCore.h"
+#include  "UI/UILayer.h"
+#include "Application.h"
+
 
 namespace Timey {
 
@@ -13,12 +16,14 @@ namespace Timey {
 		TIMEY_CORE_ASSERT(!s_instance, "more than one application is initialized.");
 
 		s_instance = this;
+
 		_Init();
+		UILayer::OnInit();
 	}
 
 	Application::~Application()
 	{
-
+		UILayer::OnDistory();
 
 	}
 
@@ -26,16 +31,15 @@ namespace Timey {
 	{
 		while (_is_running) {
 
-			//TIMEY_TRACE("Application Running");
-
 			float  this_frame_time = glfwGetTime();
 			float ts = this_frame_time - _last_frame_time;
 			_last_frame_time = this_frame_time;
 
 			
 
-			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		
 			
+			UILayer::OnUpdate(ts);
 			m_window->onUpdate();
 
 		}
@@ -44,9 +48,10 @@ namespace Timey {
 	void Application::onEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.DispatchEvents<WindowCloseEvent>(TIMEY_BIND_CALLBACK(Application::_ShutDown));
+		dispatcher.DispatchEvents<WindowCloseEvent>(TIMEY_BIND_CALLBACK(Application::_CloseWindow));
 
-		TIMEY_TRACE("{0}", e);
+		UILayer::OnEvent(e);
+		//TIMEY_TRACE("{0}", e);
 	}
 
 
@@ -57,12 +62,9 @@ namespace Timey {
 		m_window = BaseWindow::Create();
 		m_window->setEventCallback(TIMEY_BIND_CALLBACK(Application::onEvent));
 
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	bool Application::_ShutDown(WindowCloseEvent& e)
+	bool Application::_CloseWindow(WindowCloseEvent& e)
 	{
 		_is_running = false;
 

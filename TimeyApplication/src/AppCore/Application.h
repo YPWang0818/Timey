@@ -13,14 +13,17 @@ namespace Timey {
 		~Application();
 
 		inline static Application& getApplication() { return *s_instance; };
+		Ref<BaseWindow> getWindowHandle() { return m_window; };
+
 		void operator=(const Application&) = delete;
 
 		void Run();
 		void onEvent(Event& e);
+		
 
 	private:
 		void _Init();
-		bool _ShutDown(WindowCloseEvent& e);
+		bool _CloseWindow(WindowCloseEvent& e);
 
 	private:
 
