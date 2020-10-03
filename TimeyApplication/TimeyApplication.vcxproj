@@ -147,6 +147,7 @@
     <ClInclude Include="src\timey_pch.h" />
     <ClInclude Include="src\UI\ImguiBackend.h" />
     <ClInclude Include="src\UI\UILayer.h" />
+    <ClInclude Include="src\UI\Windows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppCore\Application.cpp" />
@@ -160,6 +161,7 @@
     </ClCompile>
     <ClCompile Include="src\UI\ImguiBackend.cpp" />
     <ClCompile Include="src\UI\UILayer.cpp" />
+    <ClCompile Include="src\UI\Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TimeyCore\TimeyCore.vcxproj">

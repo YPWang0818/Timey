@@ -1,0 +1,32 @@
+You can also call ImGui::LogText() to output directly to the log without a visual output.
+Copy "Hello, world!" to clipboard
+
+## Window options ##
+[ ]
+No titlebar [ ]
+No scrollbar [ ]
+No menu
+[ ]
+No move [ ]
+No resize [ ]
+No collapse
+[ ]
+No close [ ]
+No nav [ ]
+No background
+[ ]
+No bring to front
+[ ]
+No docking
+
+## Widgets ##
+
+## Layout ##
+
+## Popups & Modal windows ##
+
+## Columns ##
+
+## Filtering ##
+
+## Inputs, Navigation & Focus ##

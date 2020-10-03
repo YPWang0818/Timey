@@ -3,14 +3,25 @@
 #include "UILayer.h"
 #include "imgui.h"
 #include "ImguiBackend.h"
+#include "Application.h"
 
 namespace Timey {
 
+	std::vector<Ref<Window>> UILayer::m_window_list = std::vector<Ref<Window>>();
 
 	void UILayer::OnInit()
 	{
 		ImguiBackend::Init();
 		ImGui::StyleColorsDark();
+
+		Application& app = Application::getApplication();
+		WindowSettings settings = {
+			app.getWindowHandle()->getWidth(),
+			app.getWindowHandle()->getHight(),
+			"Minimal Window" };
+
+		PushWindow(CreateRef<MinimalViewWindow>(settings));
+
 	}
 
 	void UILayer::OnDistory()
@@ -23,6 +34,13 @@ namespace Timey {
 		ImguiBackend::OnEvent(e);
 	}
 
+
+	void UILayer::PushWindow(const Ref<Window>& window)
+	{
+		m_window_list.push_back(window);
+	}
+
+
 	void UILayer::OnUpdate(float timestep)
 	{
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -33,18 +51,27 @@ namespace Timey {
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = timestep;
 		bool show_demo_window = false;
-		bool show_debug = true;
+		bool show_debug = false;
+
+	
 
 
-		ImGui::Begin("Hellow World.");
-		ImGui::Text("This is some useful text.");
-		ImGui::End();
+		//ImGui::ShowMetricsWindow(&show_debug);
+		//ImGui::ShowDemoWindow(&show_demo_window);
 
-		ImGui::ShowMetricsWindow(&show_debug);
-		ImGui::ShowDemoWindow(&show_demo_window);
+		
+
+		for (auto& child : m_window_list) {
+			if (child->IsVisible()) {
+				child->onUIRender();
+			}
+		};
+
+
 		ImGui::Render();
 		ImguiBackend::DrawRenderData(ImGui::GetDrawData());
 	
 	}
+
 
 }
