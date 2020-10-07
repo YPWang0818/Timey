@@ -10,37 +10,35 @@
 namespace Timey {
 
 	Application* Application::s_instance = nullptr;
+	AppContext* Application::timeyCtx = new AppContext;
 
 	Application::Application()
 	{
 		TIMEY_CORE_ASSERT(!s_instance, "more than one application is initialized.");
-
 		s_instance = this;
 
-		_Init();
-		UILayer::OnInit();
+		Init();
 	}
 
 	Application::~Application()
 	{
-		UILayer::OnDistory();
+		timeyCtx->UILayer->OnDistory();
 
 	}
 
 	void Application::Run()
 	{
-		while (_is_running) {
+		while (timeyCtx->isRunning) {
 
-			float  this_frame_time = glfwGetTime();
-			float ts = this_frame_time - _last_frame_time;
-			_last_frame_time = this_frame_time;
+			float  thisFrameTime = glfwGetTime();
+			float ts = thisFrameTime - lastFrameTime;
+			lastFrameTime = thisFrameTime;
 
 			
-
+			timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]->onUpdate();
+			timeyCtx->UILayer->OnUpdate(ts);
+			
 		
-			
-			UILayer::OnUpdate(ts);
-			m_window->onUpdate();
 
 		}
 	}
@@ -48,26 +46,57 @@ namespace Timey {
 	void Application::onEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.DispatchEvents<WindowCloseEvent>(TIMEY_BIND_CALLBACK(Application::_CloseWindow));
+		dispatcher.DispatchEvents<WindowCloseEvent>(TIMEY_BIND_CALLBACK(Application::CloseWindow));
 
-		UILayer::OnEvent(e);
-		//TIMEY_TRACE("{0}", e);
+		timeyCtx->UILayer->OnEvent(e);
+		
 	}
 
 
-	void Application::_Init()
+	void Application::Init()
 	{
-		TIMEY_INFO("Application Initialized.");
 
-		m_window = BaseWindow::Create();
-		m_window->setEventCallback(TIMEY_BIND_CALLBACK(Application::onEvent));
 
+		timeyCtx->minimalWindowProps.Title = "Minimal Window";
+		timeyCtx->minimalWindowProps.Hight = 200;
+		timeyCtx->minimalWindowProps.Width = 500;
+		timeyCtx->minimalWindowProps.callback_fun = TIMEY_BIND_CALLBACK(Application::onEvent);
+
+		timeyCtx->standardWindowProps.Title = "Timey";
+		timeyCtx->standardWindowProps.Hight = 780;
+		timeyCtx->standardWindowProps.Width = 1280;
+		timeyCtx->standardWindowProps.callback_fun = TIMEY_BIND_CALLBACK(Application::onEvent);
+
+
+
+		if (!timeyCtx->initialized) {
+		
+			timeyCtx->currentWindowType = MainWindowType::standard;
+			timeyCtx->mainWindows[(uint32_t)MainWindowType::standard] = BaseWindow::Create(timeyCtx->standardWindowProps);
+			timeyCtx->mainWindows[(uint32_t)MainWindowType::standard]->setVisbility(false);
+
+			timeyCtx->mainWindows[(uint32_t)MainWindowType::minmal] = BaseWindow::Create(timeyCtx->minimalWindowProps);
+			timeyCtx->mainWindows[(uint32_t)MainWindowType::minmal]->setVisbility(false);
+
+			timeyCtx->UILayer = CreateRef<UILayer>();
+			timeyCtx->UILayer->OnInit();
+
+
+			timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]->getGraphicsContex()->makeContexCurrent();
+
+			timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]->setVisbility(true);
+			
+			timeyCtx->isRunning = true;
+			timeyCtx->initialized = true;
+
+		}
+
+	
 	}
 
-	bool Application::_CloseWindow(WindowCloseEvent& e)
+	bool Application::CloseWindow(WindowCloseEvent& e)
 	{
-		_is_running = false;
-
+		timeyCtx->isRunning = false;
 		return true;
 	}
 

@@ -48,10 +48,6 @@ namespace Timey {
 
 
 		ImGui::Begin(m_settings.Title.c_str(), nullptr, window_flags);
-
-		//ImGui::SetWindowPos(ImVec2(0, 0), 1);
-		ImGui::SetWindowSize(ImVec2(m_settings.Width, m_settings.Hight), 1);
-
 		ImGui::Text("This is an minimal window.");
 
 	

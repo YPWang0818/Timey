@@ -1,9 +1,41 @@
 #pragma once
 #include "Events/TimeyEvents.h"
 #include "BaseWindow.h"
-#include "timey_pch.h"
+#include "UI/UILayer.h"
 
 namespace Timey {
+
+	enum class MainWindowType {
+		minmal = 0,
+		standard = 1
+	};
+
+	struct AppContext {
+
+		bool initialized;
+		bool isRunning;
+
+		MainWindowType currentWindowType;
+		WindowProps minimalWindowProps, standardWindowProps;
+
+
+
+		Ref<BaseWindow> mainWindows[2];
+		Ref<UILayer> UILayer;
+
+		AppContext() {
+			initialized = false;
+			isRunning = false;
+			mainWindows[0] = nullptr;
+			mainWindows[1] = nullptr;
+			UILayer = nullptr;
+		
+		}
+
+
+	};
+
+
 
 	class Application
 	{
@@ -13,7 +45,9 @@ namespace Timey {
 		~Application();
 
 		inline static Application& getApplication() { return *s_instance; };
-		Ref<BaseWindow> getWindowHandle() { return m_window; };
+		inline static AppContext& getAppContext() { return *timeyCtx; };
+
+		Ref<BaseWindow> getWindowHandle() { return timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]; };
 
 		void operator=(const Application&) = delete;
 
@@ -22,20 +56,26 @@ namespace Timey {
 		
 
 	private:
-		void _Init();
-		bool _CloseWindow(WindowCloseEvent& e);
+		void Init();
+		bool CloseWindow(WindowCloseEvent& e);
 
 	private:
 
 		static Application* s_instance;
-		bool _is_running = true;
-		float _last_frame_time = 0;
+		static AppContext* timeyCtx;
 
-		Ref<BaseWindow> m_window;
+		float lastFrameTime = 0;
+
+
 
 
 	};
 
 	Application* CreateApp();
+
+
+	
+
 }
+	
 

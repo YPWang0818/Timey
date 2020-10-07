@@ -7,17 +7,17 @@ namespace Timey {
 	class UILayer {
 
 	public:
+	
+		void OnInit();
+		void OnDistory();
+		void OnEvent(Event& e);
+		void OnUpdate(float timestep);
 
-		static void OnInit();
-		static void OnDistory();
-		static void OnEvent(Event& e);
-		static void OnUpdate(float timestep);
-
-		static void PushWindow(const Ref<Window>& window);
+		void PushWindow(const Ref<Window>& window);
 
 
 	private:
-		static std::vector<Ref<Window>> m_window_list;
+		std::vector<Ref<Window>> m_window_list;
 
 
 	};
