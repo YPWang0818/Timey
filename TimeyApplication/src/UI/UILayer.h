@@ -1,8 +1,10 @@
 #pragma once
 #include "Events/Event.h"
-#include "Windows.h"
+#include "UIWindows.h"
 
 namespace Timey {
+
+	using UIWindowMapping = std::unordered_map<TimeyID, Ref<UIWindow>>;
 
 	class UILayer {
 
@@ -13,11 +15,14 @@ namespace Timey {
 		void OnEvent(Event& e);
 		void OnUpdate(float timestep);
 
-		void PushWindow(const Ref<Window>& window);
+		void PushWindow(const Ref<UIWindow>& window);
+		Ref<UIWindow> getWindowByID(const TimeyID& ID);
 
+		auto begin() { return m_WindowLists.begin(); };
+		auto end() { return m_WindowLists.end(); };
 
 	private:
-		std::vector<Ref<Window>> m_window_list;
+		UIWindowMapping m_WindowLists;
 
 
 	};

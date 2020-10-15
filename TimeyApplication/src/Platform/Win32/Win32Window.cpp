@@ -234,7 +234,6 @@ namespace Timey {
 	{
 		m_contex->makeContexCurrent();
 		glfwPollEvents();
-
 		m_contex->SwapBuffers();
 
 	};

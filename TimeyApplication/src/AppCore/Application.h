@@ -20,14 +20,13 @@ namespace Timey {
 
 
 
-		Ref<BaseWindow> mainWindows[2];
+		Ref<BaseWindow> mainWindows;
 		Ref<UILayer> UILayer;
 
 		AppContext() {
 			initialized = false;
 			isRunning = false;
-			mainWindows[0] = nullptr;
-			mainWindows[1] = nullptr;
+			mainWindows = nullptr;
 			UILayer = nullptr;
 		
 		}
@@ -47,7 +46,7 @@ namespace Timey {
 		inline static Application& getApplication() { return *s_instance; };
 		inline static AppContext& getAppContext() { return *timeyCtx; };
 
-		Ref<BaseWindow> getWindowHandle() { return timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]; };
+		Ref<BaseWindow> getWindowHandle() { return timeyCtx->mainWindows; };
 
 		void operator=(const Application&) = delete;
 

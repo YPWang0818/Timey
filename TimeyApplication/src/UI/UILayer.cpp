@@ -13,14 +13,15 @@ namespace Timey {
 		ImguiBackend::Init();
 		ImGui::StyleColorsDark();
 
-		Application& app = Application::getApplication();
-		WindowSettings settings = {
-			app.getWindowHandle()->getWidth(),
-			app.getWindowHandle()->getHight(),
-			"Minimal Window" };
+		AppContext& ctx = Application::getAppContext();
 
-		PushWindow(CreateRef<MinimalViewWindow>(settings));
+		WindowUISettings minimalSettings = {
+			ctx.mainWindows->getWidth(),
+			ctx.mainWindows->getHight(),
+			"Minamal Windows"
+		};
 
+		PushWindow(CreateRef<MinimalViewWindow>(minimalSettings));
 	}
 
 	void UILayer::OnDistory()
@@ -34,9 +35,14 @@ namespace Timey {
 	}
 
 
-	void UILayer::PushWindow(const Ref<Window>& window)
+	void UILayer::PushWindow(const Ref<UIWindow>& window)
 	{
-		m_window_list.push_back(window);
+		m_WindowLists[window->getWindowID()] = window;
+	}
+
+	Ref<UIWindow> UILayer::getWindowByID(const TimeyID& ID)
+	{
+		return m_WindowLists[ID];
 	}
 
 
@@ -49,20 +55,14 @@ namespace Timey {
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = timestep;
-		bool show_demo_window = false;
-		bool show_debug = false;
 
 	
-
-
 		//ImGui::ShowMetricsWindow(&show_debug);
 		//ImGui::ShowDemoWindow(&show_demo_window);
 
-		
-
-		for (auto& child : m_window_list) {
-			if (child->IsVisible()) {
-				child->onUIRender();
+		for (auto& child : m_WindowLists) {
+			if (child.second->IsVisible()) {
+				child.second->onUIRender();
 			}
 		};
 

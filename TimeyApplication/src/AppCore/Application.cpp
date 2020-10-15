@@ -28,17 +28,19 @@ namespace Timey {
 
 	void Application::Run()
 	{
+
 		while (timeyCtx->isRunning) {
 
 			float  thisFrameTime = glfwGetTime();
 			float ts = thisFrameTime - lastFrameTime;
 			lastFrameTime = thisFrameTime;
-
 			
-			timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]->onUpdate();
+			
+			timeyCtx->mainWindows->onUpdate();
 			timeyCtx->UILayer->OnUpdate(ts);
 			
-		
+
+	
 
 		}
 	}
@@ -47,7 +49,6 @@ namespace Timey {
 	{
 		EventDispatcher dispatcher(e);
 		dispatcher.DispatchEvents<WindowCloseEvent>(TIMEY_BIND_CALLBACK(Application::CloseWindow));
-
 		timeyCtx->UILayer->OnEvent(e);
 		
 	}
@@ -71,21 +72,11 @@ namespace Timey {
 
 		if (!timeyCtx->initialized) {
 		
-			timeyCtx->currentWindowType = MainWindowType::standard;
-			timeyCtx->mainWindows[(uint32_t)MainWindowType::standard] = BaseWindow::Create(timeyCtx->standardWindowProps);
-			timeyCtx->mainWindows[(uint32_t)MainWindowType::standard]->setVisbility(false);
-
-			timeyCtx->mainWindows[(uint32_t)MainWindowType::minmal] = BaseWindow::Create(timeyCtx->minimalWindowProps);
-			timeyCtx->mainWindows[(uint32_t)MainWindowType::minmal]->setVisbility(false);
-
+			timeyCtx->currentWindowType = MainWindowType::minmal;
+			timeyCtx->mainWindows = BaseWindow::Create(timeyCtx->minimalWindowProps);
 			timeyCtx->UILayer = CreateRef<UILayer>();
 			timeyCtx->UILayer->OnInit();
-
-
-			timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]->getGraphicsContex()->makeContexCurrent();
-
-			timeyCtx->mainWindows[(uint32_t)timeyCtx->currentWindowType]->setVisbility(true);
-			
+			timeyCtx->mainWindows->getGraphicsContex()->makeContexCurrent();
 			timeyCtx->isRunning = true;
 			timeyCtx->initialized = true;
 
