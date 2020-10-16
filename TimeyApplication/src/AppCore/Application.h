@@ -16,17 +16,21 @@ namespace Timey {
 		bool isRunning;
 
 		MainWindowType currentWindowType;
-		WindowProps minimalWindowProps, standardWindowProps;
+		WindowProps baseWindowSettings;
+
+		WindowUISettings windowUISettings[2];
+		WindowUISettings* initWindowUISettings;
 
 
-
-		Ref<BaseWindow> mainWindows;
+		Ref<BaseWindow> mainWindow;
 		Ref<UILayer> UILayer;
 
 		AppContext() {
+
+			initWindowUISettings = nullptr;
 			initialized = false;
 			isRunning = false;
-			mainWindows = nullptr;
+			mainWindow = nullptr;
 			UILayer = nullptr;
 		
 		}
@@ -46,7 +50,7 @@ namespace Timey {
 		inline static Application& getApplication() { return *s_instance; };
 		inline static AppContext& getAppContext() { return *timeyCtx; };
 
-		Ref<BaseWindow> getWindowHandle() { return timeyCtx->mainWindows; };
+		Ref<BaseWindow> getWindowHandle() { return timeyCtx->mainWindow; };
 
 		void operator=(const Application&) = delete;
 
@@ -57,6 +61,8 @@ namespace Timey {
 	private:
 		void Init();
 		bool CloseWindow(WindowCloseEvent& e);
+
+		void UpdateMainWindowType();
 
 	private:
 

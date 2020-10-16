@@ -1,10 +1,12 @@
 #pragma once
 #include <memory>
 #include <utility>
+#include <functional>
 
 
 #define TIMEY_BIND_CALLBACK(func) std::bind(&func, this , std::placeholders::_1)
 #define TIMEY_BIND_STATIC_CALLBACK(func) std::bind(&func, std::placeholders::_1)
+
 
 namespace Timey {
 
@@ -25,5 +27,10 @@ namespace Timey {
 		return std::shared_ptr<U>(new U(std::forward<Args>(args)...));
 	};
 
+	// TODO: impelment compile time hash?
+	static std::size_t timeyStdHashStr(const std::string& str) {
+			return std::hash<std::string>{}(str);
+	}
 
+	#define TIMEY_HASH_STR(str) timeyStdHashStr(str)
 }

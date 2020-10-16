@@ -57,7 +57,6 @@ namespace Timey {
 		if (ImGui::Button("Swith to standard window."))
 		{
 			ctx.currentWindowType = MainWindowType::standard;
-			//SetVisibility(false);
 		}
 
 
@@ -65,6 +64,18 @@ namespace Timey {
 		ImGui::PopStyleVar(2);
 
 		RenderAllChildren();
+	}
+
+	void MinimalViewWindow::SetToCurrent()
+	{
+		SetVisibility(true);
+		AppContext& ctx = Application::getAppContext();
+		WindowUISettings& settings = ctx.windowUISettings[(uint32_t)MainWindowType::minmal];
+		
+		ctx.mainWindow->setSize(settings.Width, settings.Hight);
+		ctx.mainWindow->setTitle(settings.Title);
+		
+
 	}
 
 
@@ -84,52 +95,42 @@ namespace Timey {
 	{
 		
 
+		ImGuiWindowFlags window_flags =  ImGuiWindowFlags_NoDocking;
 
-        ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->GetWorkPos());
+		ImGui::SetNextWindowSize(viewport->GetWorkSize());
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-       
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->GetWorkPos());
-        ImGui::SetNextWindowSize(viewport->GetWorkSize());
-        ImGui::SetNextWindowViewport(viewport->ID);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::Begin("Standard Window", nullptr, window_flags);
+		ImGui::PopStyleVar(3);
+	
 
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-       
-
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-		ImGui::Begin(m_settings.Title.c_str(), nullptr, window_flags);
-
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
-        else
-		{
-			TIMEY_CORE_ERROR("Dockspace Not configured."); 
-		}
-
-		ImGui::Text("This is a standard window.");
-
+		ImGui::Text("This is an minimal window.");
 
 		AppContext& ctx = Application::getAppContext();
 
 		if (ImGui::Button("Swith to minimal window."))
 			ctx.currentWindowType = MainWindowType::minmal;
-		
-		ImGui::PopStyleVar(3);
+	
    
 		RenderAllChildren();
 
 		ImGui::End();
+	}
+	void StandardlViewWindow::SetToCurrent()
+	{
+		SetVisibility(true);
+		AppContext& ctx = Application::getAppContext();
+		WindowUISettings& settings = ctx.windowUISettings[(uint32_t)MainWindowType::standard];
+
+		ctx.mainWindow->setSize(settings.Width, settings.Hight);
+		ctx.mainWindow->setTitle(settings.Title);
 	}
 }

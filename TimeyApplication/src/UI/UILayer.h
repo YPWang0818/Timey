@@ -17,6 +17,7 @@ namespace Timey {
 
 		void PushWindow(const Ref<UIWindow>& window);
 		Ref<UIWindow> getWindowByID(const TimeyID& ID);
+		Ref<UIWindow> getWindowByName(const std::string& name);
 
 		auto begin() { return m_WindowLists.begin(); };
 		auto end() { return m_WindowLists.end(); };

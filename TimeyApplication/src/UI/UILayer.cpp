@@ -12,16 +12,11 @@ namespace Timey {
 	{
 		ImguiBackend::Init();
 		ImGui::StyleColorsDark();
-
 		AppContext& ctx = Application::getAppContext();
 
-		WindowUISettings minimalSettings = {
-			ctx.mainWindows->getWidth(),
-			ctx.mainWindows->getHight(),
-			"Minamal Windows"
-		};
+		PushWindow(CreateRef<MinimalViewWindow>(ctx.windowUISettings[(uint32_t)MainWindowType::minmal]));
+		PushWindow(CreateRef<StandardlViewWindow>(ctx.windowUISettings[(uint32_t)MainWindowType::standard]));
 
-		PushWindow(CreateRef<MinimalViewWindow>(minimalSettings));
 	}
 
 	void UILayer::OnDistory()
@@ -43,6 +38,11 @@ namespace Timey {
 	Ref<UIWindow> UILayer::getWindowByID(const TimeyID& ID)
 	{
 		return m_WindowLists[ID];
+	}
+
+	Ref<UIWindow> UILayer::getWindowByName(const std::string& name)
+	{
+		return m_WindowLists[TIMEY_HASH_STR(name)];
 	}
 
 

@@ -19,8 +19,10 @@ namespace Timey {
 		UIWindow(const WindowUISettings& settings);
 
 		virtual void onUIRender() {};
+		virtual void SetToCurrent() {};
 
 		void SetVisibility(bool visible) { m_visible = visible; };
+
 		bool IsVisible() const { return m_visible; };
 
 		uint32_t getWidth() const { return m_settings.Width; };
@@ -55,7 +57,7 @@ namespace Timey {
 		~MinimalViewWindow();
 
 		virtual void onUIRender() override;
-
+		virtual void SetToCurrent() override;
 	};
 
 
@@ -70,7 +72,7 @@ namespace Timey {
 		~StandardlViewWindow();
 
 		virtual void onUIRender() override;
-
+		virtual void SetToCurrent() override;
 	};
 
 

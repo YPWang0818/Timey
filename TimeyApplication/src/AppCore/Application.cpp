@@ -28,19 +28,19 @@ namespace Timey {
 
 	void Application::Run()
 	{
-
+		
 		while (timeyCtx->isRunning) {
+
+			UpdateMainWindowType();
 
 			float  thisFrameTime = glfwGetTime();
 			float ts = thisFrameTime - lastFrameTime;
 			lastFrameTime = thisFrameTime;
 			
 			
-			timeyCtx->mainWindows->onUpdate();
+			timeyCtx->mainWindow->onUpdate();
 			timeyCtx->UILayer->OnUpdate(ts);
 			
-
-	
 
 		}
 	}
@@ -57,26 +57,29 @@ namespace Timey {
 	void Application::Init()
 	{
 
+		WindowUISettings minwinSetting = { 500, 200, "Minimal Window"};
+		WindowUISettings stdwinSetting = { 1280, 780, "Timey" };
 
-		timeyCtx->minimalWindowProps.Title = "Minimal Window";
-		timeyCtx->minimalWindowProps.Hight = 200;
-		timeyCtx->minimalWindowProps.Width = 500;
-		timeyCtx->minimalWindowProps.callback_fun = TIMEY_BIND_CALLBACK(Application::onEvent);
+		timeyCtx->windowUISettings[0] = minwinSetting;
+		timeyCtx->windowUISettings[1] = stdwinSetting;
+		timeyCtx->currentWindowType = MainWindowType::minmal;
 
-		timeyCtx->standardWindowProps.Title = "Timey";
-		timeyCtx->standardWindowProps.Hight = 780;
-		timeyCtx->standardWindowProps.Width = 1280;
-		timeyCtx->standardWindowProps.callback_fun = TIMEY_BIND_CALLBACK(Application::onEvent);
+		timeyCtx->initWindowUISettings = &timeyCtx->windowUISettings[(uint32_t)timeyCtx->currentWindowType];
+		
+		WindowProps basewinSetting;
+		basewinSetting.callback_fun = TIMEY_BIND_CALLBACK(Application::onEvent);
+		basewinSetting.Title = minwinSetting.Title;
+		basewinSetting.Width = minwinSetting.Width;
+		basewinSetting.Hight = minwinSetting.Hight;
 
-
+		timeyCtx->baseWindowSettings = basewinSetting;
 
 		if (!timeyCtx->initialized) {
 		
-			timeyCtx->currentWindowType = MainWindowType::minmal;
-			timeyCtx->mainWindows = BaseWindow::Create(timeyCtx->minimalWindowProps);
+			timeyCtx->mainWindow = BaseWindow::Create(timeyCtx->baseWindowSettings);
 			timeyCtx->UILayer = CreateRef<UILayer>();
 			timeyCtx->UILayer->OnInit();
-			timeyCtx->mainWindows->getGraphicsContex()->makeContexCurrent();
+			timeyCtx->mainWindow->getGraphicsContex()->makeContexCurrent();
 			timeyCtx->isRunning = true;
 			timeyCtx->initialized = true;
 
@@ -89,6 +92,28 @@ namespace Timey {
 	{
 		timeyCtx->isRunning = false;
 		return true;
+	}
+
+	void Application::UpdateMainWindowType()
+	{
+		Ref<UIWindow> minimalWindow = timeyCtx->UILayer->getWindowByName(timeyCtx->windowUISettings[(uint32_t)MainWindowType::minmal].Title);
+		Ref<UIWindow> standardWindow = timeyCtx->UILayer->getWindowByName(timeyCtx->windowUISettings[(uint32_t)MainWindowType::standard].Title);
+
+	
+		for (auto window : *(timeyCtx->UILayer)) {
+			window.second->SetVisibility(false);
+		
+		}; // Set all windows to not visible at first.
+
+		switch (timeyCtx->currentWindowType)
+		{
+		case MainWindowType::minmal: minimalWindow->SetToCurrent();
+			break;
+		case MainWindowType::standard: standardWindow->SetToCurrent();
+			break;
+		default:
+			break;
+		};
 	}
 
 
