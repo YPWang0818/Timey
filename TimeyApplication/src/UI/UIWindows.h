@@ -2,7 +2,11 @@
 #include "timey_pch.h"
 #include "TimeyCore.h"
 
+
 namespace Timey {
+
+	class UIWindow;
+	using UIWindowMapping = std::unordered_map<TimeyID, Ref<UIWindow>>;
 
 	struct WindowUISettings {
 
@@ -18,29 +22,34 @@ namespace Timey {
 		~UIWindow() = default;
 		UIWindow(const WindowUISettings& settings);
 
-		virtual void onUIRender() {};
-		virtual void SetToCurrent() {};
+		virtual void SetToCurrentWindow() {};
 
 		void SetVisibility(bool visible) { m_visible = visible; };
-
 		bool IsVisible() const { return m_visible; };
 
 		uint32_t getWidth() const { return m_settings.Width; };
 		uint32_t getHight() const { return m_settings.Hight; };
 		TimeyID getWindowID() const { return m_WindowID; };
+		UIWindowMapping getChildrenList() { return m_children_list; };
+		Ref<UIWindow> getChildWindowByID(const TimeyID& ID);
+		Ref<UIWindow> getChildWindowByName(const std::string& name);
 
-		
-		std::vector<Ref<UIWindow>>& getChildrenList() { return m_children_list; };
+
 		void PushWindow(const Ref<UIWindow>& window);
-
+		void onUpdate();
 
 	protected:
+
 		void RenderAllChildren();
+		virtual void onUIRender() {};
+		virtual void Begin() {};
+		virtual void End() {};
+
 		TimeyID m_WindowID;
 		WindowUISettings m_settings;
 
 	private:
-		std::vector<Ref<UIWindow>> m_children_list;
+		UIWindowMapping m_children_list;
 		bool m_visible = false;
 
 	};
@@ -50,14 +59,16 @@ namespace Timey {
 	{
 
 	public:
-		MinimalViewWindow(const WindowUISettings& settings)
-			:UIWindow(settings)
-		{};
+		MinimalViewWindow(const WindowUISettings& settings);
 
-		~MinimalViewWindow();
+		~MinimalViewWindow() = default;
 
+		virtual void Begin() override;
+		virtual void End() override;
 		virtual void onUIRender() override;
-		virtual void SetToCurrent() override;
+		virtual void SetToCurrentWindow() override;
+	private:
+		TimeyID m_sessionWindowID = 0;
 	};
 
 
@@ -69,24 +80,36 @@ namespace Timey {
 			:UIWindow(settings)
 		{};
 
-		~StandardlViewWindow();
+		~StandardlViewWindow() = default;
 
+		virtual void Begin() override;
+		virtual void End() override;
 		virtual void onUIRender() override;
-		virtual void SetToCurrent() override;
+		virtual void SetToCurrentWindow() override;
 	};
 
 
+	class SessionViewWindow : public UIWindow
+	{
+	public:
+
+		SessionViewWindow(const WindowUISettings& settings)
+			:UIWindow(settings)
+		{};
+
+		SessionViewWindow() = default;
+
+		virtual void Begin() override;
+		virtual void End() override;
+		virtual void onUIRender() override;
+	private:
+		const static uint32_t maxTitleSize = 128;
+		int day = 0, month = 0, year = 0;
+		Session tempSession;
+
+	};
 
 
+	};
 
 
-
-
-
-
-
-
-
-
-
-}

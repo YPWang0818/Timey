@@ -1,7 +1,6 @@
 #include "timey_pch.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-
 #include "TimeyCore.h"
 #include  "UI/UILayer.h"
 #include "Application.h"
@@ -36,7 +35,6 @@ namespace Timey {
 			float  thisFrameTime = glfwGetTime();
 			float ts = thisFrameTime - lastFrameTime;
 			lastFrameTime = thisFrameTime;
-			
 			
 			timeyCtx->mainWindow->onUpdate();
 			timeyCtx->UILayer->OnUpdate(ts);
@@ -107,9 +105,9 @@ namespace Timey {
 
 		switch (timeyCtx->currentWindowType)
 		{
-		case MainWindowType::minmal: minimalWindow->SetToCurrent();
+		case MainWindowType::minmal: minimalWindow->SetToCurrentWindow();
 			break;
-		case MainWindowType::standard: standardWindow->SetToCurrent();
+		case MainWindowType::standard: standardWindow->SetToCurrentWindow();
 			break;
 		default:
 			break;

@@ -14,9 +14,8 @@ namespace Timey {
 			:ID(id), name(name) {};
 		BaseObject(const std::string name)
 			:name(name), ID(0) {}; // the initial ID is 0 if the object is created first time. 
-	
 
-		
+		BaseObject() = default;
 	};
 
 	struct GroupObject : public BaseObject
@@ -28,6 +27,8 @@ namespace Timey {
 			:BaseObject(ID, name), parentID(parent_id) {};
 		GroupObject(const std::string& name, uint32_t parent_id)
 			:BaseObject(name), parentID(parent_id) {};
+
+		GroupObject() = default;
 	};
 
 	struct TagGroup : public GroupObject
@@ -37,6 +38,8 @@ namespace Timey {
 			:GroupObject(ID, name, parent_id) {};
 		TagGroup(const std::string& name, uint32_t parent_id)
 			:GroupObject(name, parent_id) {};
+
+		TagGroup() = default;
 
 		std::string toString() const override {
 			std::stringstream ss;
@@ -53,6 +56,7 @@ namespace Timey {
 			:GroupObject(ID, name, parent_id) {};
 		ProjectGroup(const std::string& name, uint32_t parent_id)
 			:GroupObject(name, parent_id) {};
+		ProjectGroup() = default;
 
 		std::string toString() const override {
 			std::stringstream ss;
@@ -66,6 +70,8 @@ namespace Timey {
 		float g;
 		float b;
 		float a;
+
+		Color() = default;
 
 		std::string toString() const {
 			std::stringstream ss;
@@ -81,6 +87,8 @@ namespace Timey {
 		int hour;
 		int minute;
 		int second;
+
+		Date() = default;
 
 		std::string toString() const {
 			std::stringstream ss;
@@ -99,6 +107,8 @@ namespace Timey {
 
 		Tag( const std::string& name, Color color, int taggp_id)
 			:BaseObject(name), tag_color(color), tag_group_id(taggp_id) {};
+
+		Tag() = default;
 
 		virtual std::string toString() const  override {
 
@@ -120,6 +130,8 @@ namespace Timey {
 		Date end_time;
 		uint32_t project_id;
 		std::vector<std::shared_ptr<Tag>> tag_list;
+
+		Session() = default;
 
 		Session(uint32_t ID, const std::string& name, const std::string& discription, Date start_time, Date end_time, float duration, uint32_t project_ID)
 			:BaseObject(ID, name),
@@ -180,6 +192,7 @@ namespace Timey {
 		Project(const std::string& name, const std::string& discription, Color color, int prjgp_id)
 			:BaseObject(name), project_color(color), discription(discription), project_group_id(prjgp_id), tag_list(std::vector<std::shared_ptr<Tag>>()) {};
 	
+		Project() = default;
 
 		virtual std::string toString() const override {
 

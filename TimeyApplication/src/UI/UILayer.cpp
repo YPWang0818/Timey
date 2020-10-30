@@ -1,5 +1,4 @@
 #include "timey_pch.h"
-#include "glad/glad.h"
 #include "UILayer.h"
 #include "imgui.h"
 #include "ImguiBackend.h"
@@ -48,24 +47,17 @@ namespace Timey {
 
 	void UILayer::OnUpdate(float timestep)
 	{
-		glClearColor(0.2f, 0.2f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		ImguiBackend::NewFrame();
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = timestep;
 
-	
-		//ImGui::ShowMetricsWindow(&show_debug);
-		//ImGui::ShowDemoWindow(&show_demo_window);
+		ImguiBackend::NewFrame();
 
 		for (auto& child : m_WindowLists) {
 			if (child.second->IsVisible()) {
-				child.second->onUIRender();
+				child.second->onUpdate();
 			}
 		};
-
 
 		ImGui::Render();
 		ImguiBackend::DrawRenderData(ImGui::GetDrawData());
