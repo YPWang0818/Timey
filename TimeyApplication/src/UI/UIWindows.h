@@ -95,7 +95,11 @@ namespace Timey {
 
 		SessionViewWindow(const WindowUISettings& settings)
 			:UIWindow(settings)
-		{};
+		{
+			m_title.resize(maxTitleSize);
+			m_description.resize(maxDescriptionSize);
+
+		};
 
 		SessionViewWindow() = default;
 
@@ -104,11 +108,18 @@ namespace Timey {
 		virtual void onUIRender() override;
 	private:
 		const static uint32_t maxTitleSize = 128;
-		int day = 0, month = 0, year = 0;
-		int st_hour = 0, st_min = 0, st_sec = 0;
-		int ed_hour = 0, ed_min  = 0, ed_sec = 0;
-		int dur_hour = 0, dur_min = 0, dur_sec = 0;
-		Session tempSession;
+		const static uint32_t maxDescriptionSize = 1024;
+		inline const static float scrlspd = 0.5f;
+
+		std::string m_title;
+		std::string m_description;
+
+		DateTime m_startTime;
+		DateTime m_endTime;
+		Time m_duration;
+
+
+
 
 	};
 

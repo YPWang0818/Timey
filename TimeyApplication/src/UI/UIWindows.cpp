@@ -212,29 +212,36 @@ namespace Timey {
 		
 		
 		ImGui::Text("This is a session view window.");
-
-		tempSession.name.resize(maxTitleSize);
-		ImGui::InputTextWithHint("Title","Session Title", &tempSession.name[0], maxTitleSize);
+		ImGui::InputTextWithHint("Title","Session Title", &m_title[0], maxTitleSize);
 		ImGui::Text("Project: ");
 		ImGui::Text("Date (yyyy:mm::dd) "); ImGui::SameLine();
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15);
-		ImGui::InputInt(":" DUMMY_LABLE, &year, 0, 0); ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, &month, 0.5, 1, 12); ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, &day, 0.5, 1, 31);
+
+		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_startTime.date.year, 0, 0); ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_startTime.date.month, scrlspd, 1, 12);
+		ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, (int*)&m_startTime.date.day, scrlspd, 1, 31);
+
 		ImGui::Text("Time (hh:mm:ss) "); 
-		ImGui::InputInt(":" DUMMY_LABLE, &st_hour, 0, 0); ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, &st_min, 0.4, 1, 60); ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, &st_sec, 1, 1, 60); ImGui::SameLine();
+		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_startTime.time.hour, 0, 0);
+		ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_startTime.time.minute, scrlspd, 1, 60);
+		ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, (int*)&m_startTime.time.second, scrlspd, 1, 60);
+		ImGui::SameLine();
 		ImGui::Text("-");
-		ImGui::InputInt(":" DUMMY_LABLE,&ed_hour, 0, 0); ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, &ed_min, 0.4, 1, 60); ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, &ed_sec, 1, 1, 60);
+		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_endTime.time.hour, 0, 0);
+		ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_endTime.time.minute, scrlspd,  1, 60);
+		ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, (int*)&m_endTime.time.second, scrlspd, 1, 60);
 
 		ImGui::Spacing();
 		ImGui::Text("Duration:");
-		ImGui::InputInt(":" DUMMY_LABLE, &dur_hour, 0, 0); ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, &dur_min, 0.4, 1, 60); ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, &dur_sec, 1, 1, 60);
+		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_duration.hour, 0, 0); ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_duration.minute, scrlspd, 1, 60); 
+		ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, (int*)&m_duration.second, scrlspd, 1, 60);
 
 		ImGui::PopItemWidth();
 
@@ -243,9 +250,9 @@ namespace Timey {
 
 		ImGui::Text("Discription:");
 
-		static char sessionText[1024 * 16] = "Discription of the session. \n";
+		
 		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-		ImGui::InputTextMultiline("##source", sessionText, IM_ARRAYSIZE(sessionText), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 24), flags);
+		ImGui::InputTextMultiline("##source", &m_description[0], maxDescriptionSize, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 24), flags);
 
 		if (ImGui::Button("Save")) {
 			SetVisibility(false);

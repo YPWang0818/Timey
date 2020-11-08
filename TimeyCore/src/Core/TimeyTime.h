@@ -1,5 +1,6 @@
 #pragma once
 #include "timey_pch.h"
+#include <chrono>
 
 namespace Timey {
 
@@ -80,7 +81,7 @@ namespace Timey {
 
 	class ClockTime : public Time 
 	{
-		// The ClockTime only support 24 hour format in UTC. 
+		// The ClockTime only support 24 hour format. 
 	public:
 		ClockTime() { setToNow(); };
 		ClockTime(uint32_t Hour, uint32_t Minute, uint32_t Second)
@@ -98,9 +99,9 @@ namespace Timey {
 		DateTime(uint32_t Year, uint32_t Month, uint32_t Day, uint32_t Hour, uint32_t Minute, uint32_t Second)
 			:date{ Year , Month,  Day }, time{ Hour , Minute, Second } {};
 
-
 		Date date;
-		Time time;
+		ClockTime time;
+
 
 		std::string toString() const {
 			std::stringstream ss;

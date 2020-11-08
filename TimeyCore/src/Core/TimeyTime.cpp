@@ -64,10 +64,10 @@ namespace Timey {
 	void Date::setToNow()
 	{
 		std::time_t rawtime = std::time(nullptr);
-		std::tm* now = std::gmtime(&rawtime);
+		std::tm* now = std::localtime(&rawtime);
 
-		year = now->tm_year;
-		month = now->tm_mon;
+		year = now->tm_year + 1900;
+		month = now->tm_mon + 1;
 		day = now->tm_mday;
 
 	}
@@ -109,8 +109,9 @@ namespace Timey {
 
 	void ClockTime::setToNow()
 	{
+		// Currently the values is stored as local time. Should stored as UTC in future. 
 		std::time_t rawtime = std::time(nullptr);
-		std::tm* now = std::gmtime(&rawtime);
+		std::tm* now = std::localtime(&rawtime);
 
 		hour = now->tm_hour;
 		minute = now->tm_min;
