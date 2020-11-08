@@ -1,5 +1,6 @@
 #pragma once
 #include "timey_pch.h"
+#include "TimeyTime.h"
 
 namespace Timey {
 
@@ -80,23 +81,6 @@ namespace Timey {
 		}
 	};
 
-	struct Date {
-		int year;
-		int month;
-		int day;
-		int hour;
-		int minute;
-		int second;
-
-		Date() = default;
-
-		std::string toString() const {
-			std::stringstream ss;
-			ss << year << ":" << month << ":" << day << " " << hour << ":" << minute << ":" << second;
-			return ss.str();
-		}
-		
-	};
 
 	struct Tag : public BaseObject {
 		Color tag_color;
@@ -126,14 +110,14 @@ namespace Timey {
 	{
 		std::string discription;
 		float duration;
-		Date start_time;
-		Date end_time;
+		DateTime start_time;
+		DateTime end_time;
 		uint32_t project_id;
 		std::vector<std::shared_ptr<Tag>> tag_list;
 
 		Session() = default;
 
-		Session(uint32_t ID, const std::string& name, const std::string& discription, Date start_time, Date end_time, float duration, uint32_t project_ID)
+		Session(uint32_t ID, const std::string& name, const std::string& discription, DateTime start_time, DateTime end_time, float duration, uint32_t project_ID)
 			:BaseObject(ID, name),
 			discription(discription),
 			start_time(start_time),
@@ -143,7 +127,7 @@ namespace Timey {
 			tag_list(std::vector<std::shared_ptr<Tag>>())
 		{};
 
-		Session(const std::string& name, const std::string discription, Date start_time, Date end_time, float duration, uint32_t project_ID = 0) 
+		Session(const std::string& name, const std::string discription, DateTime start_time, DateTime end_time, float duration, uint32_t project_ID = 0) 
 			:BaseObject(name),
 			discription(discription),
 			start_time(start_time),

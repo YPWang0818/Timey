@@ -19,18 +19,18 @@ namespace Timey {
 		std::shared_ptr<Query> add_session = getQueries()["add_session"];
 
 		add_session->Bind<double>(1, static_cast<double>(session.duration));
-		add_session->Bind<int>(2, session.start_time.year);
-		add_session->Bind<int>(3, session.start_time.month);
-		add_session->Bind<int>(4, session.start_time.day);
-		add_session->Bind<int>(5, session.start_time.hour);
-		add_session->Bind<int>(6, session.start_time.minute);
-		add_session->Bind<int>(7, session.start_time.second);
-		add_session->Bind<int>(8, session.end_time.year);
-		add_session->Bind<int>(9, session.end_time.month);
-		add_session->Bind<int>(10, session.end_time.day);
-		add_session->Bind<int>(11, session.end_time.hour);
-		add_session->Bind<int>(12, session.end_time.minute);
-		add_session->Bind<int>(13, session.end_time.second);
+		add_session->Bind<int>(2, session.start_time.date.year);
+		add_session->Bind<int>(3, session.start_time.date.month);
+		add_session->Bind<int>(4, session.start_time.date.day);
+		add_session->Bind<int>(5, session.start_time.time.hour);
+		add_session->Bind<int>(6, session.start_time.time.minute);
+		add_session->Bind<int>(7, session.start_time.time.second);
+		add_session->Bind<int>(8, session.end_time.date.year);
+		add_session->Bind<int>(9, session.end_time.date.month);
+		add_session->Bind<int>(10, session.end_time.date.day);
+		add_session->Bind<int>(11, session.end_time.time.hour);
+		add_session->Bind<int>(12, session.end_time.time.minute);
+		add_session->Bind<int>(13, session.end_time.time.second);
 		add_session->Bind<const std::string& >(14, session.name);
 		add_session->Bind<const std::string& >(15, session.discription);
 		add_session->Bind<int>(16, session.project_id);
@@ -68,24 +68,26 @@ namespace Timey {
 			return nullptr; 
 		};
 
-		Date start_time = { 
-			(res->getColumn<int>(2))[0], //y
-			(res->getColumn<int>(3))[0], //m
-			(res->getColumn<int>(4))[0], //d
-			(res->getColumn<int>(5))[0], //h
-			(res->getColumn<int>(6))[0], //m
-			(res->getColumn<int>(7))[0], //s
+		DateTime start_time = { 
+			(uint32_t)( (res->getColumn<int>(2))[0]), //y
+			(uint32_t)( (res->getColumn<int>(3))[0]), //m
+			(uint32_t)( (res->getColumn<int>(4))[0]), //d
+			(uint32_t)( (res->getColumn<int>(5))[0]), //h
+			(uint32_t)( (res->getColumn<int>(6))[0]), //m
+			(uint32_t)( (res->getColumn<int>(7))[0]), //s
 		};
 
-		Date end_time = {
-			(res->getColumn<int>(8))[0], //y
-			(res->getColumn<int>(9))[0], //m
-			(res->getColumn<int>(10))[0], //d
-			(res->getColumn<int>(11))[0], //h
-			(res->getColumn<int>(12))[0], //m
-			(res->getColumn<int>(13))[0], //s
+		DateTime end_time = {
+			(uint32_t)((res->getColumn<int>(8))[0]), //y
+			(uint32_t)((res->getColumn<int>(9))[0]), //m
+			(uint32_t)((res->getColumn<int>(10))[0]), //d
+			(uint32_t)((res->getColumn<int>(11))[0]), //h
+			(uint32_t)((res->getColumn<int>(12))[0]), //m
+			(uint32_t)((res->getColumn<int>(13))[0]), //s
 		};
 		
+
+
 		std::string discription;
 
 		if (res->getColumnType(15) != SQLiteType::null) {

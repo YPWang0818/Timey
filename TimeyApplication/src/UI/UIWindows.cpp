@@ -202,24 +202,50 @@ namespace Timey {
 		ImGui::End();
 	}
 
+	#define UGE_STRINGIFY(x) #x
+	#define UGE_TOSTRING(x) UGE_STRINGIFY(x)
+	#define DUMMY_LABLE "##" UGE_TOSTRING(__COUNTER__)
+	// ImGui Widgets need a unique name for every widgets. This is a temprary hack. 
+
 	void SessionViewWindow::onUIRender()
 	{
-
 		
-
+		
 		ImGui::Text("This is a session view window.");
 
 		tempSession.name.resize(maxTitleSize);
 		ImGui::InputTextWithHint("Title","Session Title", &tempSession.name[0], maxTitleSize);
 		ImGui::Text("Project: ");
-		ImGui::Text("Date: "); ImGui::SameLine();
+		ImGui::Text("Date (yyyy:mm::dd) "); ImGui::SameLine();
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15);
-		ImGui::InputInt("", &year, 0, 0); //ImGui::SameLine();
-		//ImGui::Text("/"); //ImGui::SameLine();
-		//ImGui::InputInt("", &month, 1, 100); //ImGui::SameLine();
-		//ImGui::Text("/"); //ImGui::SameLine();
-		//ImGui::InputInt("", &day, 1, 100);
+		ImGui::InputInt(":" DUMMY_LABLE, &year, 0, 0); ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, &month, 0.5, 1, 12); ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, &day, 0.5, 1, 31);
+		ImGui::Text("Time (hh:mm:ss) "); 
+		ImGui::InputInt(":" DUMMY_LABLE, &st_hour, 0, 0); ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, &st_min, 0.4, 1, 60); ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, &st_sec, 1, 1, 60); ImGui::SameLine();
+		ImGui::Text("-");
+		ImGui::InputInt(":" DUMMY_LABLE,&ed_hour, 0, 0); ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, &ed_min, 0.4, 1, 60); ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, &ed_sec, 1, 1, 60);
 
+		ImGui::Spacing();
+		ImGui::Text("Duration:");
+		ImGui::InputInt(":" DUMMY_LABLE, &dur_hour, 0, 0); ImGui::SameLine();
+		ImGui::DragInt(":" DUMMY_LABLE, &dur_min, 0.4, 1, 60); ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, &dur_sec, 1, 1, 60);
+
+		ImGui::PopItemWidth();
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		ImGui::Text("Discription:");
+
+		static char sessionText[1024 * 16] = "Discription of the session. \n";
+		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+		ImGui::InputTextMultiline("##source", sessionText, IM_ARRAYSIZE(sessionText), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 24), flags);
 
 		if (ImGui::Button("Save")) {
 			SetVisibility(false);

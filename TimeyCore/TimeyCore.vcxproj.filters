@@ -51,6 +51,7 @@
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
     <ClInclude Include="src\Core\TimeyID.h" />
+    <ClInclude Include="src\Core\TimeyTime.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp">
@@ -85,5 +86,6 @@
     </ClCompile>
     <ClCompile Include="src\timey_pch.cpp" />
     <ClCompile Include="src\Core\TimeyID.cpp" />
+    <ClCompile Include="src\Core\TimeyTime.cpp" />
   </ItemGroup>
 </Project>

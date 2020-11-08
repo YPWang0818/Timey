@@ -144,6 +144,7 @@
     <ClInclude Include="src\Core\FileManager.h" />
     <ClInclude Include="src\Core\Log.h" />
     <ClInclude Include="src\Core\Object.h" />
+    <ClInclude Include="src\Core\TimeyTime.h" />
     <ClInclude Include="src\Core\Utilty.h" />
     <ClInclude Include="src\Core\TimeyID.h" />
     <ClInclude Include="src\TimeyCore.h" />
@@ -160,6 +161,7 @@
     <ClCompile Include="src\Core\DbClasses\TagGroupDataBase.cpp" />
     <ClCompile Include="src\Core\FileManager.cpp" />
     <ClCompile Include="src\Core\Log.cpp" />
+    <ClCompile Include="src\Core\TimeyTime.cpp" />
     <ClCompile Include="src\Core\TimeyID.cpp" />
     <ClCompile Include="src\timey_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

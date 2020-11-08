@@ -105,6 +105,9 @@ namespace Timey {
 	private:
 		const static uint32_t maxTitleSize = 128;
 		int day = 0, month = 0, year = 0;
+		int st_hour = 0, st_min = 0, st_sec = 0;
+		int ed_hour = 0, ed_min  = 0, ed_sec = 0;
+		int dur_hour = 0, dur_min = 0, dur_sec = 0;
 		Session tempSession;
 
 	};
