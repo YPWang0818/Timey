@@ -14,7 +14,7 @@ namespace Timey {
 		AppContext& ctx = Application::getAppContext();
 
 		PushWindow(CreateRef<MinimalViewWindow>(ctx.windowUISettings[(uint32_t)MainWindowType::minmal]));
-		PushWindow(CreateRef<StandardlViewWindow>(ctx.windowUISettings[(uint32_t)MainWindowType::standard]));
+		PushWindow(CreateRef<StandardViewWindow>(ctx.windowUISettings[(uint32_t)MainWindowType::standard]));
 
 	}
 

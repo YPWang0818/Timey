@@ -86,6 +86,22 @@ namespace Timey {
 
 	}
 
+	int32_t Time::toSeconds()
+	{
+		return (3600 * hour + 60 * minute + second);
+	}
+
+	Time Time::secondsInTime(int32_t seconds)
+	{
+		TIMEY_CORE_ASSERT(seconds >= 0, "secondsInTime currently dosen't support negative time");
+
+		int32_t hr = seconds / 3600;
+		int32_t min = ( seconds  - hr * 60) / 60;
+		int32_t sec = (seconds - hr * 3600 - hr * 60);
+
+		return { Hour(hr), Minute(min), Second(sec) };
+	}
+
 	bool Time::isMinSecValid()
 	{
 		return (minute >= 0) && (second >= 0) && (minute < 60) && (second < 60);
@@ -100,8 +116,8 @@ namespace Timey {
 	{
 		minute = (minute < 0) ? 0 : minute;
 		minute = (minute > 59) ? 59 : minute;
-		minute = (second < 0) ? 0 : second;
-		minute = (second > 59) ? 59 : second;
+		second = (second < 0) ? 0 : second;
+		second = (second > 59) ? 59 : second;
 		hour = (hour < 0) ? 0 : hour;
 		hour = (hour > 23) ? 23 : hour;
 

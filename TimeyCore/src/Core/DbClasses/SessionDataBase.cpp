@@ -69,21 +69,21 @@ namespace Timey {
 		};
 
 		DateTime start_time = { 
-			(uint32_t)( (res->getColumn<int>(2))[0]), //y
-			(uint32_t)( (res->getColumn<int>(3))[0]), //m
-			(uint32_t)( (res->getColumn<int>(4))[0]), //d
-			(uint32_t)( (res->getColumn<int>(5))[0]), //h
-			(uint32_t)( (res->getColumn<int>(6))[0]), //m
-			(uint32_t)( (res->getColumn<int>(7))[0]), //s
+			 (res->getColumn<int>(2))[0], //y
+			 (res->getColumn<int>(3))[0], //m
+			 (res->getColumn<int>(4))[0], //d
+			 (res->getColumn<int>(5))[0], //h
+			 (res->getColumn<int>(6))[0], //m
+			 (res->getColumn<int>(7))[0], //s
 		};
 
 		DateTime end_time = {
-			(uint32_t)((res->getColumn<int>(8))[0]), //y
-			(uint32_t)((res->getColumn<int>(9))[0]), //m
-			(uint32_t)((res->getColumn<int>(10))[0]), //d
-			(uint32_t)((res->getColumn<int>(11))[0]), //h
-			(uint32_t)((res->getColumn<int>(12))[0]), //m
-			(uint32_t)((res->getColumn<int>(13))[0]), //s
+			(res->getColumn<int>(8))[0], //y
+			(res->getColumn<int>(9))[0], //m
+			(res->getColumn<int>(10))[0], //d
+			(res->getColumn<int>(11))[0], //h
+			(res->getColumn<int>(12))[0], //m
+			(res->getColumn<int>(13))[0], //s
 		};
 		
 

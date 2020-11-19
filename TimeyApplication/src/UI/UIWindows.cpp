@@ -9,6 +9,13 @@ namespace Timey {
 	UIWindow::UIWindow(const  WindowUISettings& settings)
 		:m_WindowID(settings.Title), m_settings(settings)
 	{
+	}
+	void UIWindow::SetVisibility(bool visible, void* data)
+	{
+		m_visible = visible; 
+
+		if (m_visible) m_settings.onShowCallback(data);
+		else m_settings.onHideCallback(data);
 	};
 
 
@@ -54,8 +61,13 @@ namespace Timey {
 			500, 800,
 			"Add Session"
 		};
+
+
 		PushWindow(CreateRef<SessionViewWindow>(sessionWinSet));
+
 		m_sessionWindowID = getChildWindowByName(sessionWinSet.Title)->getWindowID();
+		m_settings.onShowCallback = TIMEY_BIND_CALLBACK(MinimalViewWindow::onWindowShow);
+		m_settings.onHideCallback = TIMEY_BIND_CALLBACK(MinimalViewWindow::onWindowHide);
 	};
 
 	void MinimalViewWindow::onUIRender()
@@ -123,7 +135,14 @@ namespace Timey {
 
 	///////////////////////// Standard Window ///////////////////////////
 
-	void StandardlViewWindow::Begin()
+	StandardViewWindow::StandardViewWindow(const WindowUISettings& settings)
+		:UIWindow(settings)
+	{
+		m_settings.onShowCallback = TIMEY_BIND_CALLBACK(StandardViewWindow::onWindowShow);
+		m_settings.onHideCallback = TIMEY_BIND_CALLBACK(StandardViewWindow::onWindowHide);
+	};
+
+	void StandardViewWindow::Begin()
 	{
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
 
@@ -147,13 +166,13 @@ namespace Timey {
 		ImGui::PopStyleVar(3);
 	}
 
-	void StandardlViewWindow::End()
+	void StandardViewWindow::End()
 	{
 		ImGui::End();
 	}
 
 
-	void StandardlViewWindow::onUIRender()
+	void StandardViewWindow::onUIRender()
 	{
 		AppContext& ctx = Application::getAppContext();
 
@@ -169,7 +188,7 @@ namespace Timey {
 
 	}
 
-	void StandardlViewWindow::SetToCurrentWindow()
+	void StandardViewWindow::SetToCurrentWindow()
 	{
 		SetVisibility(true);
 		AppContext& ctx = Application::getAppContext();
@@ -209,7 +228,7 @@ namespace Timey {
 
 	void SessionViewWindow::onUIRender()
 	{
-		
+	
 		
 		ImGui::Text("This is a session view window.");
 		ImGui::InputTextWithHint("Title","Session Title", &m_title[0], maxTitleSize);
@@ -217,31 +236,35 @@ namespace Timey {
 		ImGui::Text("Date (yyyy:mm::dd) "); ImGui::SameLine();
 		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15);
 
-		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_startTime.date.year, 0, 0); ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_startTime.date.month, scrlspd, 1, 12);
+		ImGui::InputInt(":" DUMMY_LABLE, &m_startTime.date.year, 0, 0);
 		ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, (int*)&m_startTime.date.day, scrlspd, 1, 31);
+		ImGui::DragInt(":" DUMMY_LABLE, &m_startTime.date.month, scrlspd, 1, 12);
+		ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, &m_startTime.date.day, scrlspd, 1, 31);
 
 		ImGui::Text("Time (hh:mm:ss) "); 
-		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_startTime.time.hour, 0, 0);
+
+		ImGui::InputInt(":" DUMMY_LABLE, &m_startTime.time.hour, 0, 0);
 		ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_startTime.time.minute, scrlspd, 1, 60);
+		ImGui::DragInt(":" DUMMY_LABLE, &m_startTime.time.minute, scrlspd, 1, 59);
 		ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, (int*)&m_startTime.time.second, scrlspd, 1, 60);
+		ImGui::DragInt(DUMMY_LABLE, &m_startTime.time.second, scrlspd, 1, 59);
 		ImGui::SameLine();
 		ImGui::Text("-");
-		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_endTime.time.hour, 0, 0);
+		ImGui::InputInt(":" DUMMY_LABLE, &m_endTime.time.hour, 0, 0);
 		ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_endTime.time.minute, scrlspd,  1, 60);
+		ImGui::DragInt(":" DUMMY_LABLE, &m_endTime.time.minute, scrlspd,  1, 59);
 		ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, (int*)&m_endTime.time.second, scrlspd, 1, 60);
+
+		ImGui::DragInt(DUMMY_LABLE, &m_endTime.time.second, scrlspd, 1, 59);
 
 		ImGui::Spacing();
 		ImGui::Text("Duration:");
-		ImGui::InputInt(":" DUMMY_LABLE, (int*)&m_duration.hour, 0, 0); ImGui::SameLine();
-		ImGui::DragInt(":" DUMMY_LABLE, (int*)&m_duration.minute, scrlspd, 1, 60); 
+		ImGui::InputInt(":" DUMMY_LABLE, &m_duration.hour, 0, 0); 
 		ImGui::SameLine();
-		ImGui::DragInt(DUMMY_LABLE, (int*)&m_duration.second, scrlspd, 1, 60);
+		ImGui::DragInt(":" DUMMY_LABLE, &m_duration.minute, scrlspd, 1, 60);
+		ImGui::SameLine();
+		ImGui::DragInt(DUMMY_LABLE, &m_duration.second, scrlspd, 1, 60);
 
 		ImGui::PopItemWidth();
 
@@ -254,10 +277,72 @@ namespace Timey {
 		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 		ImGui::InputTextMultiline("##source", &m_description[0], maxDescriptionSize, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 24), flags);
 
+
 		if (ImGui::Button("Save")) {
 			SetVisibility(false);
 		}
 
+
+
+
+
+	}
+
+	void SessionViewWindow::onWindowShow(void* data)
+	{
+		switch (m_flag) {
+		case InternalFlags::brandnew_session: loadNewSession(); break;
+		case InternalFlags::cached_session: loadSession(); break;	
+		}
+
+	}
+
+	void SessionViewWindow::onWindowHide(void* data)
+	{
+		pushNewSession();
+	}
+
+	void SessionViewWindow::pushNewSession()
+	{
+
+		Ref<Session> newSess = CreateRef<Session>();
+
+		newSess->ID = 0; 
+		newSess->name = m_description;
+		newSess->duration = (float)m_duration.toSeconds();
+		newSess->start_time = m_startTime;
+		newSess->end_time = m_endTime;
+
+
+		AppContext& ctx = Application::getAppContext();
+		ctx.sessionBuf.savedSessionList.push_back(newSess);
+		ctx.sessionBuf.markAsDirty();
+
+	}
+	
+
+	// returns 0 input is valid otherwise return 1. 
+	int SessionViewWindow::sanitizeInput()
+	{
+		bool isVaild = true;
+
+		if (!m_startTime.date.isVaild()) { m_startTime.date.clipToVaild(); isVaild && false; };
+		if (!m_startTime.time.isVaild()) { m_startTime.time.clipToVaild(); isVaild && false; };
+		if (!m_endTime.date.isVaild()) { m_endTime.date.clipToVaild(); isVaild && false; };
+		if (!m_endTime.time.isVaild()) { m_endTime.time.clipToVaild(); isVaild && false; };
+		if (!m_duration.isVaild()) { m_duration.clipToVaild(); isVaild && false; };
+
+		return (isVaild == true ? 0 : 1);
+	}
+
+	void SessionViewWindow::loadNewSession()
+	{
+		// We need a way to control m_startTime, m_endTime etc. Since currently Imgui hold ownership of it....
+	}
+
+
+	void SessionViewWindow::loadSession()
+	{
 
 	}
 }

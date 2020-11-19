@@ -10,6 +10,33 @@ namespace Timey {
 		standard = 1
 	};
 
+	enum class InfoStatus {
+		clean = 0,
+		dirty = 1
+	};
+
+	struct SessionBuffer
+	{
+		void markAsDirty() { bufferstatus = InfoStatus::dirty; };
+		void markAsClean() { bufferstatus = InfoStatus::clean; };
+		bool isDirty() { return (bufferstatus == InfoStatus::dirty) ? true : false; };
+		
+		RefList<Session> defaultSessionList; 
+		RefList<Session> modifiedSessionList;
+		RefList<Session> savedSessionList;
+
+		SessionBuffer() {
+		
+			defaultSessionList.reserve(maxDefaultSessionListSize);
+		}
+
+	private:
+
+		static const size_t maxDefaultSessionListSize = 20;
+		InfoStatus bufferstatus = InfoStatus::clean;
+
+	};
+
 	struct AppContext {
 
 		bool initialized;
@@ -21,9 +48,10 @@ namespace Timey {
 		WindowUISettings windowUISettings[2];
 		WindowUISettings* initWindowUISettings;
 
-
 		Ref<BaseWindow> mainWindow;
 		Ref<UILayer> UILayer;
+
+		SessionBuffer sessionBuf;
 
 		AppContext() {
 
@@ -34,7 +62,6 @@ namespace Timey {
 			UILayer = nullptr;
 		
 		}
-
 
 	};
 
@@ -61,8 +88,9 @@ namespace Timey {
 	private:
 		void Init();
 		bool CloseWindow(WindowCloseEvent& e);
-
 		void UpdateMainWindowType();
+		void UptateSessionBuffer();
+
 
 	private:
 

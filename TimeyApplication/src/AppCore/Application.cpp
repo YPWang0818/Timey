@@ -56,7 +56,8 @@ namespace Timey {
 	{
 
 		WindowUISettings minwinSetting = { 500, 200, "Minimal Window"};
-		WindowUISettings stdwinSetting = { 1280, 780, "Timey" };
+
+		WindowUISettings stdwinSetting = { 1280, 780, "Timey"};
 
 		timeyCtx->windowUISettings[0] = minwinSetting;
 		timeyCtx->windowUISettings[1] = stdwinSetting;
@@ -111,6 +112,33 @@ namespace Timey {
 			break;
 		default:
 			break;
+		};
+	}
+
+	void Application::UptateSessionBuffer()
+	{
+		AppContext& ctx = Application::getAppContext();
+
+
+		if (ctx.sessionBuf.isDirty()) {
+
+			auto defSes = ctx.sessionBuf.defaultSessionList;
+			auto savSes = ctx.sessionBuf.savedSessionList;
+			auto modSes = ctx.sessionBuf.modifiedSessionList;
+
+			for (auto& s : savSes)
+			{
+				defSes.push_back(s);
+			}
+
+			for (auto& s : modSes)
+			{
+				defSes.push_back(s);
+			}
+
+			savSes.clear();
+			modSes.clear();
+			ctx.sessionBuf.markAsClean();
 		};
 	}
 

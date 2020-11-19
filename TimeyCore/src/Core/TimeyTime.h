@@ -4,12 +4,43 @@
 
 namespace Timey {
 
+	template<typename T>
+	class GenericTimeVal {
+	public:
+
+		GenericTimeVal(int val)
+			:time_val{static_cast<T>(val)}
+		{};
+
+		GenericTimeVal() = default;
+
+		operator int() {
+			return (int)time_val;
+		};
+		operator const int() const { 
+			return (const int)time_val;
+		};
+
+		T* operator&() { return &time_val; };
+
+
+	private:
+		T time_val;
+	};
+
+	using Year = GenericTimeVal<int32_t>;
+	using Month = GenericTimeVal<int32_t>;
+	using Day = GenericTimeVal<int32_t>;
+	using Hour = GenericTimeVal<int32_t>;
+	using Minute = GenericTimeVal<int32_t>;
+	using Second = GenericTimeVal<int32_t>;
+
 	class Date {
 	public:
 
 		Date() { setToNow(); };
-		Date(uint32_t Year, uint32_t Month, uint32_t Day)
-			:year(Year), month(Month), day(Day)
+		Date(Year y, Month m, Day d)
+			:year(y), month(m), day(d)
 		{
 			if (!isVaild()) clipToVaild();
 		};
@@ -30,21 +61,13 @@ namespace Timey {
 
 	public:
 
-		uint32_t year;
-		uint32_t month;
-		uint32_t day;
+		Year year;
+		Month month;
+		Day day;
 
 	
 	};
 
-	/*
-	enum class TimeFlag
-	{
-		Flag_None = 0,
-		Flag_24Hours = 1 << 1
-	
-	};
-	*/
 
 
 	class Time {
@@ -52,8 +75,8 @@ namespace Timey {
 	public:
 
 		Time() = default;
-		Time(uint32_t Hour, uint32_t Minute, uint32_t Second)
-			:hour(Hour), minute(Minute), second(Second) 
+		Time(Hour hr, Minute min, Second sec)
+			:hour(hr), minute(min), second(sec) 
 		{
 			if(!isVaild()) clipToVaild();
 		};
@@ -61,7 +84,9 @@ namespace Timey {
 
 		virtual bool isVaild();
 		virtual void clipToVaild();
-		
+		virtual int32_t toSeconds();
+
+		static Time secondsInTime(int32_t seconds);
 
 		std::string toString() const {
 			std::stringstream ss;
@@ -73,9 +98,9 @@ namespace Timey {
 		bool isMinSecValid();
 
 	public:
-		uint32_t hour = 0;
-		uint32_t minute = 0;
-		uint32_t second = 0;
+		Hour hour = 0;
+		Minute minute = 0;
+		Second second = 0;
 	};
 
 
@@ -84,8 +109,8 @@ namespace Timey {
 		// The ClockTime only support 24 hour format. 
 	public:
 		ClockTime() { setToNow(); };
-		ClockTime(uint32_t Hour, uint32_t Minute, uint32_t Second)
-			:Time(Hour, Minute, Second) {};
+		ClockTime(Hour hr, Minute min, Second sec)
+			:Time(hr, min, sec) {};
 
 		virtual bool isVaild();
 		virtual void clipToVaild();
@@ -96,8 +121,8 @@ namespace Timey {
 	struct DateTime {
 
 		DateTime() = default;
-		DateTime(uint32_t Year, uint32_t Month, uint32_t Day, uint32_t Hour, uint32_t Minute, uint32_t Second)
-			:date{ Year , Month,  Day }, time{ Hour , Minute, Second } {};
+		DateTime(Year y, Month m, Day d, Hour hr, Minute min, Second sec)
+			:date{ y , m,  d }, time{ hr , min, sec } {};
 
 		Date date;
 		ClockTime time;
