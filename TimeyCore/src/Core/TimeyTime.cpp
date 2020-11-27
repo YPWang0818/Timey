@@ -81,8 +81,8 @@ namespace Timey {
 	{
 		minute = (minute < 0) ? 0 : minute;
 		minute = (minute > 59) ? 59 : minute;
-		minute = (second < 0) ? 0 : second;
-		minute = (second > 59) ? 59 : second;
+		second = (second < 0) ? 0 : second;
+		second = (second > 59) ? 59 : second;
 
 	}
 
@@ -96,8 +96,8 @@ namespace Timey {
 		TIMEY_CORE_ASSERT(seconds >= 0, "secondsInTime currently dosen't support negative time");
 
 		int32_t hr = seconds / 3600;
-		int32_t min = ( seconds  - hr * 60) / 60;
-		int32_t sec = (seconds - hr * 3600 - hr * 60);
+		int32_t min = ( seconds  - hr * 3600) / 60;
+		int32_t sec = (seconds - hr * 3600 - min * 60);
 
 		return { Hour(hr), Minute(min), Second(sec) };
 	}

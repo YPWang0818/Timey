@@ -127,7 +127,7 @@ namespace Timey {
 			tag_list(std::vector<std::shared_ptr<Tag>>())
 		{};
 
-		Session(const std::string& name, const std::string discription, DateTime start_time, DateTime end_time, float duration, uint32_t project_ID = 0) 
+		Session(const std::string& name, const std::string& discription, DateTime start_time, DateTime end_time, float duration, uint32_t project_ID = 0) 
 			:BaseObject(name),
 			discription(discription),
 			start_time(start_time),

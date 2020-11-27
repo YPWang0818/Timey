@@ -40,7 +40,7 @@ namespace Timey
 #define TIMEY_TRACE(...) ::Timey::Log::getClientLogger()->trace(__VA_ARGS__)
 
 #ifdef TIMEY_ENABLE_ASSERT
-#define TIMEY_CORE_ASSERT(X, ...) {if(!X){ TIMEY_CORE_ERROR("Assertion Failed {0}", __VA_ARGS__);   __debugbreak();} }
+#define TIMEY_CORE_ASSERT(X, ...) {if(!(X)){ TIMEY_CORE_ERROR("Assertion Failed {0}", __VA_ARGS__);   __debugbreak();} }
 #define TIMEY_ASSERT(X, ...) {if(!X){ TIMEY_ERROR("Assertion Failed {0}", __VA_ARGS__);__debugbreak(); } }
 #else
 #define TIMEY_CORE_ASSERT(X, ...)

@@ -31,6 +31,7 @@ namespace Timey {
 		while (timeyCtx->isRunning) {
 
 			UpdateMainWindowType();
+			UptateSessionBuffer();
 
 			float  thisFrameTime = glfwGetTime();
 			float ts = thisFrameTime - lastFrameTime;
@@ -122,9 +123,9 @@ namespace Timey {
 
 		if (ctx.sessionBuf.isDirty()) {
 
-			auto defSes = ctx.sessionBuf.defaultSessionList;
-			auto savSes = ctx.sessionBuf.savedSessionList;
-			auto modSes = ctx.sessionBuf.modifiedSessionList;
+			auto& defSes = ctx.sessionBuf.defaultSessionList;
+			auto& savSes = ctx.sessionBuf.savedSessionList;
+			auto& modSes = ctx.sessionBuf.modifiedSessionList;
 
 			for (auto& s : savSes)
 			{

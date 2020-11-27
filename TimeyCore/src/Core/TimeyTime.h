@@ -86,6 +86,7 @@ namespace Timey {
 		virtual void clipToVaild();
 		virtual int32_t toSeconds();
 
+
 		static Time secondsInTime(int32_t seconds);
 
 		std::string toString() const {
@@ -127,6 +128,7 @@ namespace Timey {
 		Date date;
 		ClockTime time;
 
+		void setToNow() { date.setToNow(); time.setToNow(); };
 
 		std::string toString() const {
 			std::stringstream ss;
