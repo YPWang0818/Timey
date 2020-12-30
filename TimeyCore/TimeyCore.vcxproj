@@ -82,6 +82,7 @@
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\DbClasses\CoreDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\DataBase.h" />
     <ClInclude Include="src\Core\DbClasses\GroupDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\ProjectDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\ProjectGroupDataBase.h" />
@@ -152,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectGroupDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\Query.cpp" />

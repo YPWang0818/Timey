@@ -42,6 +42,5 @@ namespace Timey {
 	}
 
 
-
 	#define TIMEY_HASH_STR(str) timeyStdHashStr(str)
 }

@@ -23,7 +23,7 @@ CREATE TABLE sessions (
 	end_day			INTEGER NOT NULL CHECK( 1 <= end_day AND 31 >= end_day),
 	end_hour		INTEGER NOT NULL CHECK( 0 <= end_hour AND 24 >= end_hour),
 	end_minute		INTEGER NOT NULL CHECK( 0 <= end_minute AND 60 > end_minute),
-	end_second		INTEGER NOT NULL CHECK( 0 <= end_second AND 60 > start_second),
+	end_second		INTEGER NOT NULL CHECK( 0 <= end_second AND 60 > end_second),
 
 	title			TEXT NOT NULL,
 	discription		TEXT,
