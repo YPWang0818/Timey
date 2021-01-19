@@ -4,15 +4,17 @@
 
 namespace Timey {
 
-	UniqueCol u;
-	CostumCol d("bbb");
-	ColRange r(2.3, 3.4);
-	
-	Column<ColumnType::Integer> col("test", u, d, r);
-	const const std::string name1 = d.value;
-	const const char* name2 = u.value;
-	int up = r.Upper; int lw = r.Lower;
+	constexpr UniqueCol u;
+	CostumCol<"Test">;
+
+
+	using Hello_str = meta::stom_t<"Hello">;
+	constexpr meta::string instance = ColumnStmt<"testColumn", ColumnType::Integer, UniqueCol, ColConstraint<"some constraint">>::value;
 
 
 
+	using test = meta::strcat_t < "hello", "world", Hello_str{} >;
+
+
+	 
 }

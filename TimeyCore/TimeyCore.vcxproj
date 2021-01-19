@@ -83,6 +83,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,8 +148,8 @@
     <ClInclude Include="src\Core\Log.h" />
     <ClInclude Include="src\Core\Object.h" />
     <ClInclude Include="src\Core\TimeyTime.h" />
-    <ClInclude Include="src\Core\Utilty.h" />
     <ClInclude Include="src\Core\TimeyID.h" />
+    <ClInclude Include="src\Core\Utilty.h" />
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
   </ItemGroup>

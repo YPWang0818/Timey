@@ -45,14 +45,12 @@
     <ClInclude Include="src\Core\Object.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\Utilty.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
     <ClInclude Include="src\Core\TimeyID.h" />
     <ClInclude Include="src\Core\TimeyTime.h" />
     <ClInclude Include="src\Core\DbClasses\DataBase.h" />
+    <ClInclude Include="src\Core\Utilty.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp">

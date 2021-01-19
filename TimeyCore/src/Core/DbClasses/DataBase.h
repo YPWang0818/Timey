@@ -7,138 +7,196 @@
 
 namespace Timey {
 
+	//	Some compile time utilities for working with strings and passing strings as template parameters.
+	//	Modified from the source code of Conor Williams.
 
-	template<int...I> using is = std::integer_sequence<int, I...>;
-	template<int N>   using make_is = std::make_integer_sequence<int, N>;
+	// MIT License
 
-	constexpr auto size(const char* s) { int i = 0; while (*s != 0) { ++i; ++s; } return i; }
+	// Copyright (c) 2020 Conor Williams
 
-	template<const char*, typename, const char*, typename>
-	struct concat_impl;
+	// Permission is hereby granted, free of charge, to any person obtaining a copy
+	// of this software and associated documentation files (the "Software"), to deal
+	// in the Software without restriction, including without limitation the rights
+	// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	// copies of the Software, and to permit persons to whom the Software is
+	// furnished to do so, subject to the following conditions:
 
-	template<const char* S1, int... I1, const char* S2, int... I2>
-	struct concat_impl<S1, is<I1...>, S2, is<I2...>> {
-		static constexpr const char value[]
-		{
-			S1[I1]..., S2[I2]..., 0
+	// The above copyright notice and this permission notice shall be included in
+	// all copies or substantial portions of the Software.
+
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	// SOFTWARE.
+
+	#include <cstdint>
+
+	// Provides utilities for working with compile time strings as types and passing
+	// string literals as template parameters. See the examples for details.
+
+	namespace meta {
+
+		template <char... args>
+		struct string {
+			static constexpr char c_str[sizeof...(args) + 1] = { args..., '\0' };
+			static constexpr std::size_t len() { return sizeof...(args); }
+			constexpr operator char const* () const { return c_str; }
 		};
-	};
 
-	template<const char* S1, const char* S2>
-	constexpr auto concat{
-		concat_impl<S1, make_is<sizeof(S1)>, S2, make_is<sizeof(S2)>>::value
-	};
-
-
-/* calculate absolute value */
-	constexpr int abs_val(int x)
-	{
-		return x < 0 ? -x : x;
-	}
-
-	/* calculate number of digits needed, including minus sign */
-	constexpr int num_digits(int x)
-	{
-		return x < 0 ? 1 + num_digits(-x) : x < 10 ? 1 : 1 + num_digits(x / 10);
-	}
-
-	/* metaprogramming string type: each different string is a unique type */
-	template<char... args>
-	struct metastring {
-		const char data[sizeof... (args)] = { args... };
-	};
-
-	/* recursive number-printing template, general case (for three or more digits) */
-	template<int size, int x, char... args>
-	struct numeric_builder {
-		typedef typename numeric_builder<size - 1, x / 10, '0' + abs_val(x) % 10, args...>::type type;
-	};
-
-	/* special case for two digits; minus sign is handled here */
-	template<int x, char... args>
-	struct numeric_builder<2, x, args...> {
-		typedef metastring < x < 0 ? '-' : '0' + x / 10, '0' + abs_val(x) % 10, args...> type;
-	};
-
-	/* special case for one digit (positive numbers only) */
-	template<int x, char... args>
-	struct numeric_builder<1, x, args...> {
-		typedef metastring<'0' + x, args...> type;
-	};
-
-	/* convenience wrapper for numeric_builder */
-	template<int x>
-	class numeric_string
-	{
-	private:
-		/* generate a unique string type representing this number */
-		typedef typename numeric_builder<num_digits(x), x, '\0'>::type type;
-
-		/* declare a static string of that type (instantiated later at file scope) */
-		static constexpr type value{};
-
-	public:
-		/* returns a pointer to the instantiated string */
-		static constexpr const char* get()
-		{
-			return value.data;
+		template <char... lhs, char... rhs>
+		constexpr auto operator+(string<lhs...> a, string<rhs...> b) {
+			return string<lhs..., rhs...>{};
 		}
-	};
 
-	/* instantiate numeric_string::value as needed for different numbers */
-	template<int x>
-	constexpr typename numeric_string<x>::type numeric_string<x>::value;
+		template <char... args>
+		constexpr int compare(string<args...>, string<args...>) {
+			return 0;
+		}
 
-	/* SAMPLE USAGE */
+		template <char... lhs, char... rhs>
+		constexpr int compare(string<lhs...> a, string<rhs...> b) {
+			if constexpr (sizeof...(lhs) < sizeof...(rhs)) {
+				return -1;
+			}
+			if constexpr (sizeof...(lhs) > sizeof...(rhs)) {
+				return 1;
+			}
+			for (std::size_t i = 0; i < sizeof...(lhs); ++i) {
+				if (a.c_str[i] < b.c_str[i]) {
+					return -1;
+				}
+				if (a.c_str[i] > b.c_str[i]) {
+					return 1;
+				}
+			}
+		}
+	
+
+		// Struct to wrap a template non-type parameter string literal
+		template <std::size_t N>
+		struct wrap {
+			static constexpr std::size_t size() { return N - 1; }
+
+			constexpr wrap(char const* s) {
+				for (std::size_t i = 0; i < N - 1; ++i) {
+					buf[i] = s[i];
+				}
+			}
+
+			template <char... args>
+			constexpr wrap(string<args...> s) {
+				for (std::size_t i = 0; i < N - 1; ++i) {
+					buf[i] = s[i];
+				}
+			}
+
+			char buf[N - 1]{};  // miss null
+		};
+
+		template <unsigned N>
+		wrap(char const (&)[N])->wrap<N>;
+
+		template <char... args>
+		wrap(string<args...>)->wrap<sizeof...(args) + 1>;
+
+		namespace impl {
+
+			template <auto S>
+			struct wrap_type {
+				static constexpr auto c_str = S;
+			};
+
+			template <typename S, std::size_t N, char... args>
+			struct explode : explode<S, N - 1, S::c_str.buf[N - 1], args...> {};
+
+			template <typename S, char... args>
+			struct explode<S, 0, args...> {
+				using type = string<args...>;
+			};
+
+			constexpr std::intmax_t abs_val(std::intmax_t x) { return x < 0 ? -x : x; }
+
+			constexpr std::intmax_t num_digits(std::intmax_t x) {
+				return x < 0 ? 1 + num_digits(-x) : x < 10 ? 1 : 1 + num_digits(x / 10);
+			}
+
+			template <std::intmax_t size, std::intmax_t x, char... args>
+			struct int_to_str_impl
+				: int_to_str_impl<size - 1, x / 10, '0' + abs_val(x) % 10, args...> {};
+
+			template <std::intmax_t x, char... args>
+			struct int_to_str_impl<2, x, args...> {
+				using type =
+					string < x<0 ? '-' : '0' + x / 10, '0' + abs_val(x) % 10, args...>;
+			};
+
+			template <std::intmax_t x, char... args>
+			struct int_to_str_impl<1, x, args...> {
+				using type = string<'0' + x, args...>;
+			};
+
+			template<typename, typename>
+			struct str_cat;
+
+			template<char ... lhs, char ... rhs>
+			struct str_cat<string<lhs ...>, string<rhs ...>> {
+				using type = string<lhs..., rhs...>;
+			};
 
 
-	/* exponentiate a number, just for fun */
-	static constexpr int exponent(int x, int e)
-	{
-		return e ? x * exponent(x, e - 1) : 1;
+			template<typename fst, typename ... strs>
+			struct mstr_cat {
+				using type = typename str_cat<fst, typename mstr_cat<strs...>::type>::type;
+			};
+
+			template<typename str>
+			struct mstr_cat<str> {
+				using type = str;
+			};
+
+
+		}  // namespace impls
+
+		template <auto wrapper>
+		using unwrap_t = typename impl::explode<impl::wrap_type<wrapper>, wrapper.size()>::type;
+
+		template <auto wrapper>
+		inline constexpr string unwrap_v = unwrap_t<wrapper>{};
+
+		template <wrap wrapper>
+		using stom_t = unwrap_t<wrapper>;
+
+		template <wrap wrapper>
+		inline constexpr string stom_v = unwrap_t<wrapper>{};
+
+		template <std::intmax_t x>
+		using itom_t = typename impl::int_to_str_impl<impl::num_digits(x), x>::type;
+
+		template <std::intmax_t x>
+		inline constexpr string itom_v = itom_t<x>{};
+
+		template <wrap ... wrappers>
+		using strcat_t = typename impl::mstr_cat<unwrap_t<wrappers>...>::type;
+
+
 	}
 
-	/* test a few sample numbers */
-	static constexpr const char* five = numeric_string<5>::get();
-	static constexpr const char* one_ten = numeric_string<110>::get();
-	static constexpr const char* minus_thirty = numeric_string<-30>::get();
-
-	/* works for any constant integer, including constexpr calculations */
-	static constexpr const char* eight_cubed = numeric_string<exponent(8, 3)>::get();
-
-
-
+	template<meta::wrap str>
 	struct ColConstraint {
-		struct Costum {
-			constexpr Costum(const char* constraint)
-				:value(constraint)
-			{};
-			const char* value;
-		};
-
-		struct Unique { static constexpr const char* value = " UNIQUE ";};
-		struct NotNull { static constexpr const char* value = " NOT NULL "; };
-
-		template <typename T>
-		struct Range {
-		
-			constexpr Range(const T lower, const T upper)
-				:Upper(upper), Lower(lower)
-			{
-				static_assert(std::is_arithmetic_v<T>, "Must be a arithmetic type.");
-			}
-			const T Upper;
-			const T Lower;
-
-		};
-
-	
+		using type = meta::unwrap_t<str>;
+		static constexpr meta::string value = meta::unwrap_v<str>;
+			
 	};
 
-	using UniqueCol = ColConstraint::Unique;
-	using NotNullCol = ColConstraint::NotNull;
-	using CostumCol = ColConstraint::Costum;
-	using ColRange = ColConstraint::Range;
+	using UniqueCol = ColConstraint<"UNIQUE">;
+	using NotNullCol = ColConstraint<"NOT NULL">;
+
+	template<meta::wrap str>
+	using CostumCol = ColConstraint<str>;
+
 
 
 	struct ColumnType {
@@ -150,83 +208,86 @@ namespace Timey {
 	};
 
 
-	template<typename ColType>
-	struct Column {
-		template<typename ...Args>
-		constexpr Column(const std::string name, Args&&...args) 
-			:Name(name)
-		{
-			Value = getColumnValue(name, std::forward<Args>(args)...);
-		}
-		
+	template<meta::wrap colname, typename ColType, typename ... Constraints>
+	struct ColumnStmt {
+
 	private:
+		static constexpr meta::string padding = meta::stom_v<" ">;
+		static constexpr meta::string header = padding + meta::unwrap_v<colname>;
 
-		constexpr const std::string getTypeVal() {
+		template<typename>
+		struct getTypeVal;
 
-			if constexpr (std::is_same_v<ColType, ColumnType::Integer>) {
-				return " INT ";
-			}
-			else if constexpr (std::is_same_v<ColType, ColumnType::Text>) {
-				return " TEXT ";
-			}
-			else if constexpr (std::is_same_v<ColType, ColumnType::Blob>) {
-				return " BLOB ";
-			}
-			else if constexpr (std::is_same_v<ColType, ColumnType::Real>) {
-				return " REAL ";
-			}
-			else if constexpr (std::is_same_v<ColType, ColumnType::Neumeric>) {
-				return " NUMERIC ";
-			}
-			else {
-				static_assert(false, "Undefined Column type. ");
-			};
-
-			return " ";
+		template<>
+		struct getTypeVal<ColumnType::Integer> {
+			static constexpr meta::string value = padding + meta::stom_v<"INT">;
 		};
 
-
-		template<class First>
-		constexpr const std::string getConstraintsVal(First&& fs) {
-			/**
-			if constexpr (std::is_same_v<First, ColConstraint::Unique>)
-			{
-				return fs.value;
-			}
-			else if constexpr (std::is_same_v<First, ColConstraint::NotNull>)
-			{
-				return fs.value;
-			}
-			else if constexpr (std::is_same_v<First, ColConstraint::Costum>) {
-
-				return fs.value;
-			}
-			else {
-				return " ";
-			};
-			**/
-		
+		template<>
+		struct getTypeVal<ColumnType::Text> {
+			static constexpr meta::string value =  padding + meta::stom_v<"TEXT">;
 		};
 
-		template <class First, class ... Args>
-		constexpr const std::string getConstraintsVal(First&& fs, Args&& ... args) {
-			return getConstraintsVal<First>(std::forward<First>(fs)) + getConstraintsVal(std::forward<Args>(args)...);
-			
+		template<>
+		struct getTypeVal<ColumnType::Blob> {
+			static constexpr meta::string value = padding + meta::stom_v<"BLOB">;
 		};
 
-		template<typename ... Args>
-		constexpr const std::string getColumnValue(const std::string name, Args&&...args) {
-			return (name + getTypeVal() + getConstraintsVal(std::forward<Args>(args)...) );
+		template<>
+		struct getTypeVal<ColumnType::Real> {
+			static constexpr meta::string value = padding + meta::stom_v<"NUMERIC">;
 		};
 
 		
+		template<typename Fst, typename ... Rest>
+		struct getConstraintVal {
+			static constexpr meta::string value = padding + Fst::value + getConstraintVal<Rest...>::value;
+		};
 
-		std::string Name;
-		std::string Value;
+		template<typename Fst>
+		struct getConstraintVal<Fst> {
+			static constexpr meta::string value = padding + Fst::value;
+		};
 
-	};
+	public:
+		static constexpr meta::string value = header + getTypeVal<ColType>::value
+			+ getConstraintVal<Constraints...>::value;
+
+		static constexpr meta::string name = meta::unwrap_v<colname>;
+		static constexpr meta::string coltype = getTypeVal<ColType>::value;
 	
+	};
 
+	using TableConstraint = ColConstraint;
+
+	
+	template<meta::wrap tbname, ColumnStmt ... stmt>
+	struct TableStmt {
+
+	private:
+		static constexpr meta::string padding = meta::stom_v<" ">;
+		static constexpr meta::string delimiter = meta::stom_v<",\n">;
+		static constexpr meta::string header = meta::stom_v<"CREATE TABLE "> + meta::unwrap_v<tbname> +meta::stom_v<" (\n">;
+		static constexpr meta::string trailer = meta::stom_v < ");";
+
+
+
+		template<ColumnStmt fst, ColumnStmt ... rest>
+		struct catColumns{
+			static constexpr meta::string value = padding + fst::value + delimiter + catColumnStmt<rest...>::value;
+		};
+
+		template<ColumnStmt fst>
+		struct catColumns<fst>{
+			static constexpr meta::string value = padding + fst::value;
+		};
+
+
+
+	public:
+
+		static constexpr meta::string name = meta::unwrap_v<tbname>;
+	};
 
 	template<typename T>
 	class DataBase {

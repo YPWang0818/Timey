@@ -41,6 +41,8 @@ namespace Timey {
 			return std::hash<std::string>{}(str);
 	}
 
-
 	#define TIMEY_HASH_STR(str) timeyStdHashStr(str)
+
+	
+
 }
