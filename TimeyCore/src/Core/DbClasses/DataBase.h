@@ -260,7 +260,44 @@ namespace Timey {
 
 	using TableConstraint = ColConstraint;
 
+	template<ColumnStmt ... stmt>
+	struct PrimaryKeys {
+
+	private:
+
+		static constexpr meta::string padding = meta::stom_v<" ">;
+		static constexpr meta::string delimiter = meta::stom_v<",">;
+		static constexpr meta::string header = meta::stom_v<" PRIMARY KEY ( ">;
+		static constexpr meta::string trailer = meta::strom_v = <" ) ON CONFLICT FAIL">;
+		// Other conflict causes are not implelmented.
+
+		template<ColumnStmt fst, ColumnStmt ... rest>
+		struct catNames {
+			static constexpr meta::string value = padding + fst::name + delimiter + catNames<rest...>::name;
+		};
+
+		template<ColumnStmt fst>
+		struct catNames<fst> {
+			static constexpr meta::string value = padding + fst::name;
+		};
+
+	public:
+
+		static constexpr meta::string value = meta::stom_v<"( ">+ catNames<stmt...>::value + meta::stom_v<" )">;
+		static constexpr meta::string stmt = header + catNames<stmt...>::value + trailer;
+	};
+
+	struct ForeignKeyCause {
+		struct Undefined {};
+		struct SetNull {};
+		struct Restrict {};
+		struct Cascade {};
+	};
 	
+
+	template<ColumnStmt ... stmt, TableStmt foreignTb, typename updtCause, typename delCause>
+	struct ForeignKeys;
+
 	template<meta::wrap tbname, ColumnStmt ... stmt>
 	struct TableStmt {
 
@@ -274,7 +311,7 @@ namespace Timey {
 
 		template<ColumnStmt fst, ColumnStmt ... rest>
 		struct catColumns{
-			static constexpr meta::string value = padding + fst::value + delimiter + catColumnStmt<rest...>::value;
+			static constexpr meta::string value = padding + fst::value + delimiter + catColumns<rest...>::value;
 		};
 
 		template<ColumnStmt fst>
@@ -287,6 +324,7 @@ namespace Timey {
 	public:
 
 		static constexpr meta::string name = meta::unwrap_v<tbname>;
+		static cosntexpr
 	};
 
 	template<typename T>
