@@ -268,7 +268,7 @@ namespace Timey {
 		static constexpr meta::string padding = meta::stom_v<" ">;
 		static constexpr meta::string delimiter = meta::stom_v<",">;
 		static constexpr meta::string header = meta::stom_v<" PRIMARY KEY ( ">;
-		static constexpr meta::string trailer = meta::strom_v = <" ) ON CONFLICT FAIL">;
+		static constexpr meta::string trailer = meta::stom_v<" ) ON CONFLICT FAIL">;
 		// Other conflict causes are not implelmented.
 
 		template<ColumnStmt fst, ColumnStmt ... rest>
@@ -295,17 +295,17 @@ namespace Timey {
 	};
 	
 
-	template<ColumnStmt ... stmt, TableStmt foreignTb, typename updtCause, typename delCause>
-	struct ForeignKeys;
 
-	template<meta::wrap tbname, ColumnStmt ... stmt>
+
+
+	template<meta::wrap tbname, PrimaryKeys ky, ColumnStmt ... stmt>
 	struct TableStmt {
 
 	private:
 		static constexpr meta::string padding = meta::stom_v<" ">;
 		static constexpr meta::string delimiter = meta::stom_v<",\n">;
 		static constexpr meta::string header = meta::stom_v<"CREATE TABLE "> + meta::unwrap_v<tbname> +meta::stom_v<" (\n">;
-		static constexpr meta::string trailer = meta::stom_v < ");";
+		static constexpr meta::string trailer = meta::stom_v < ");">;
 
 
 
@@ -324,7 +324,93 @@ namespace Timey {
 	public:
 
 		static constexpr meta::string name = meta::unwrap_v<tbname>;
-		static cosntexpr
+		static constexpr meta::string primaryKeys = ky::value;
+	};
+
+
+	template< typename updtCause, typename delCause, TableStmt foreignTb, ColumnStmt ... stmt>
+	struct ForeignKeys {
+
+	private:
+
+		static constexpr meta::string padding = meta::stom_v<" ">;
+		static constexpr meta::string delimiter = meta::stom_v<",">;
+		static constexpr meta::string header = meta::stom_v<" REFERENCES "> +foreignTb::name + meta::stom_v<" ( ">;
+
+		template<ColumnStmt fst, ColumnStmt ... rest>
+		struct catNames {
+			static constexpr meta::string value = padding + fst::name + delimiter + catNames<rest...>::name;
+		};
+
+		template<ColumnStmt fst>
+		struct catNames<fst> {
+			static constexpr meta::string value = padding + fst::name + meta::stom_v<" ) ">;
+		};
+
+
+		template<typename T>
+		struct resolveDelCaue;
+
+		template<>
+		struct resolveDelCaue<ForeignKeyCause::Undefined>
+		{
+			static constexpr meta::string value = meta::stom_v<" ">;
+		};
+
+		template<>
+		struct resolveDelCaue<ForeignKeyCause::Cascade>
+		{
+			static constexpr meta::string value = meta::stom_v<" ON DELETE CASCADE ">;
+		};
+
+
+		template<>
+		struct resolveDelCaue<ForeignKeyCause::Restrict>
+		{
+			static constexpr meta::string value = meta::stom_v<" ON DELETE RESTRICT ">;
+		};
+
+
+		template<>
+		struct resolveDelCaue<ForeignKeyCause::SetNull>
+		{
+			static constexpr meta::string value = meta::stom_v<" ON DELETE SET NULL ">;
+		};
+
+
+		template<typename T>
+		struct resolveUpdtCaue;
+
+		template<>
+		struct resolveUpdtCaue<ForeignKeyCause::Undefined>
+		{
+			static constexpr meta::string value = meta::stom_v<" ">;
+		};
+
+		template<>
+		struct resolveUpdtCaue<ForeignKeyCause::Cascade>
+		{
+			static constexpr meta::string value = meta::stom_v<" ON UPDATE CASCADE ">;
+		};
+
+
+		template<>
+		struct resolveUpdtCaue<ForeignKeyCause::Restrict>
+		{
+			static constexpr meta::string value = meta::stom_v<" ON UPDATE RESTRICT ">;
+		};
+
+
+		template<>
+		struct resolveUpdtCaue<ForeignKeyCause::SetNull>
+		{
+			static constexpr meta::string value = meta::stom_v<" ON UPDATE SET NULL ">;
+		};
+
+	public:
+
+		static constexpr meta::string stmt = header + catNames<stmt...>::value + resolveDelCaue<delCause> +resolveUpdtCaue<updtCause>;
+
 	};
 
 	template<typename T>
