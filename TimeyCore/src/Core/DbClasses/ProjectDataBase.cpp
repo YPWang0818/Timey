@@ -64,10 +64,10 @@ namespace Timey{
 
 
 		Color color = {
-			(res->getColumn<double>(1))[0], // r
-			(res->getColumn<double>(2))[0], // g
-			(res->getColumn<double>(3))[0], // b
-			(res->getColumn<double>(4))[0]  // a
+			(float)(res->getColumn<double>(1))[0], // r
+			(float)(res->getColumn<double>(2))[0], // g
+			(float)(res->getColumn<double>(3))[0], // b
+			(float)(res->getColumn<double>(4))[0]  // a
 		};
 
 

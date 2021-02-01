@@ -72,7 +72,7 @@ namespace Timey {
 		float b;
 		float a;
 
-		Color() = default;
+		//Color() = default;
 
 		std::string toString() const {
 			std::stringstream ss;

@@ -1,6 +1,6 @@
 #pragma once
 #include "CoreDataBase.h"
-#include "Utilty.h"
+#include "Core/Utilty.h"
 #include <tuple>
 #include <type_traits>
 		
@@ -250,7 +250,7 @@ namespace Timey {
 		};
 
 	public:
-		static constexpr meta::string value = header + getTypeVal<ColType>::value
+		static constexpr meta::string stmt = header + getTypeVal<ColType>::value
 			+ getConstraintVal<Constraints...>::value;
 
 		static constexpr meta::string name = meta::unwrap_v<colname>;
@@ -260,7 +260,7 @@ namespace Timey {
 
 	using TableConstraint = ColConstraint;
 
-	template<ColumnStmt ... stmt>
+	template<typename ... ColStmts>
 	struct PrimaryKeys {
 
 	private:
@@ -271,20 +271,20 @@ namespace Timey {
 		static constexpr meta::string trailer = meta::stom_v<" ) ON CONFLICT FAIL">;
 		// Other conflict causes are not implelmented.
 
-		template<ColumnStmt fst, ColumnStmt ... rest>
+		template<typename fst, typename ... rest>
 		struct catNames {
-			static constexpr meta::string value = padding + fst::name + delimiter + catNames<rest...>::name;
+			static constexpr meta::string value = padding + fst::name + delimiter + catNames<rest...>::value;
 		};
 
-		template<ColumnStmt fst>
+		template<typename fst>
 		struct catNames<fst> {
 			static constexpr meta::string value = padding + fst::name;
 		};
 
 	public:
 
-		static constexpr meta::string value = meta::stom_v<"( ">+ catNames<stmt...>::value + meta::stom_v<" )">;
-		static constexpr meta::string stmt = header + catNames<stmt...>::value + trailer;
+		static constexpr meta::string keys = meta::stom_v<"( ">+ catNames<ColStmts...>::value + meta::stom_v<" )">;
+		static constexpr meta::string stmt = header + catNames<ColStmts...>::value + trailer;
 	};
 
 	struct ForeignKeyCause {
@@ -298,7 +298,7 @@ namespace Timey {
 
 
 
-	template<meta::wrap tbname, PrimaryKeys ky, ColumnStmt ... stmt>
+	template<meta::wrap tbname, typename PriKeys, typename FgnKeys, typename ... ColStmt>
 	struct TableStmt {
 
 	private:
@@ -308,43 +308,52 @@ namespace Timey {
 		static constexpr meta::string trailer = meta::stom_v < ");">;
 
 
-
-		template<ColumnStmt fst, ColumnStmt ... rest>
+		template<typename fst, typename ... rest>
 		struct catColumns{
-			static constexpr meta::string value = padding + fst::value + delimiter + catColumns<rest...>::value;
+			static constexpr meta::string value = padding + fst::stmt + delimiter + catColumns<rest...>::value;
 		};
 
-		template<ColumnStmt fst>
+		template<typename fst>
 		struct catColumns<fst>{
-			static constexpr meta::string value = padding + fst::value;
+			static constexpr meta::string value = padding + fst::stmt;
 		};
 
+		template<typename T>
+		struct getFgnKey {
+			static constexpr meta::string value = delimiter + T::stmt;
+		};
 
+		template<>
+		struct getFgnKey<void> {
+			static constexpr meta::string value = meta::stom_v<" ">;
+		};
 
 	public:
 
 		static constexpr meta::string name = meta::unwrap_v<tbname>;
-		static constexpr meta::string primaryKeys = ky::value;
+		static constexpr meta::string primaryKeys = PriKeys::keys;
+
+		static constexpr meta::string stmt = header + catColumns<ColStmt...>::value + delimiter + PriKeys::stmt + getFgnKey<FgnKeys>::value + trailer;
 	};
 
 
-	template< typename updtCause, typename delCause, TableStmt foreignTb, ColumnStmt ... stmt>
+	template<typename updtCause, typename delCause, typename foreignTb, typename ... ColStmts>
 	struct ForeignKeys {
 
 	private:
 
 		static constexpr meta::string padding = meta::stom_v<" ">;
 		static constexpr meta::string delimiter = meta::stom_v<",">;
-		static constexpr meta::string header = meta::stom_v<" REFERENCES "> +foreignTb::name + meta::stom_v<" ( ">;
+		static constexpr meta::string header = meta::stom_v<" FOREIGN KEY "> + meta::stom_v<" ( ">;
 
-		template<ColumnStmt fst, ColumnStmt ... rest>
+		template<typename fst, typename ... rest>
 		struct catNames {
-			static constexpr meta::string value = padding + fst::name + delimiter + catNames<rest...>::name;
+			static constexpr meta::string value = padding + fst::name + delimiter + catNames<rest...>::value;
 		};
 
-		template<ColumnStmt fst>
+		template<typename fst>
 		struct catNames<fst> {
-			static constexpr meta::string value = padding + fst::name + meta::stom_v<" ) ">;
+			static constexpr meta::string value = padding + fst::name + meta::stom_v<" )">;
 		};
 
 
@@ -407,9 +416,14 @@ namespace Timey {
 			static constexpr meta::string value = meta::stom_v<" ON UPDATE SET NULL ">;
 		};
 
+		template<typename T>
+		struct FgnKyCause {
+			static constexpr meta::string value = meta::stom_v<" REFERENCES "> + T::name + T::primaryKeys + resolveDelCaue<delCause> + resolveUpdtCaue<updtCause>;
+		};
+
 	public:
 
-		static constexpr meta::string stmt = header + catNames<stmt...>::value + resolveDelCaue<delCause> +resolveUpdtCaue<updtCause>;
+		static constexpr meta::string stmt = header + catNames<stmt...>::value + FgnKyCause<foreignTb>::value;
 
 	};
 
@@ -444,5 +458,5 @@ namespace Timey {
 
 	};
 
-
+	void print_res();
 };
