@@ -243,18 +243,21 @@ namespace Timey {
 		static constexpr meta::string value = meta::unwrap_v<str>;
 	};
 
-	struct Uniqe  : ColBaseConstraint<"UNIQUE", ConstraintType::Unique> {};
-	struct NotNull : ColBaseConstraint<"NOT NULL", ConstraintType::NotNull> {};
+	struct Uniqe : ColBaseConstraint<"UNIQUE", ConstraintType::Unique> {
+	};
+
+	struct NotNull : ColBaseConstraint<"NOT NULL", ConstraintType::NotNull> {
+	};
 
 	template<meta::wrap str>
-	struct Custom : ColBaseConstraint<str, ConstraintType::Custom> {};
+	struct Custom : ColBaseConstraint<str, ConstraintType::Custom> {
+	};
 
 	template<meta::wrap expr>
-	struct CheckExpr : ColBaseConstraint<expr, ConstraintType::CheckEpxr> {};
+	struct CheckExpr : ColBaseConstraint<expr, ConstraintType::CheckEpxr> { 
+	};
 
-	template<typename Ky>
-	struct PrimaryKey : ColBaseConstraint<" ", ConstraintType::PrimaryKey>{
-		using KyCause = Ky;
+	struct PrimaryKey : ColBaseConstraint<" PRIMARY KEY AUTOINCREMENT ",ConstraintType::PrimaryKey>{
 	};
 
 
@@ -280,7 +283,7 @@ namespace Timey {
 
 		template<>
 		struct getTypeVal<ColumnType::Integer> {
-			static constexpr meta::string value = padding + meta::stom_v<"INT">;
+			static constexpr meta::string value = padding + meta::stom_v<"INTEGER">;
 		};
 
 		template<>
@@ -295,7 +298,7 @@ namespace Timey {
 
 		template<>
 		struct getTypeVal<ColumnType::Real> {
-			static constexpr meta::string value = padding + meta::stom_v<"NUMERIC">;
+			static constexpr meta::string value = padding + meta::stom_v<"REAL">;
 		};
 
 		template<typename T>
@@ -303,28 +306,15 @@ namespace Timey {
 
 			template<typename trait>
 			struct resolve {
-
-				resolve() {
-					// Type check here.
-				};
-
 				static constexpr meta::string value = T::value;
+				constexpr resolve() { static_assert(false); }
 			};
 
 			template<>
 			struct resolve<ConstraintType::CheckEpxr>
 			{
 				static constexpr meta::string value = meta::stom_v<"CHECK ( "> + T::value + meta::stom_v<" ) ">;
-			};
-
-
-			template<>
-			struct resolve<ConstraintType::PrimaryKey>
-			{
-				static constexpr meta::string header = meta::stom_v<"PRIMARY KEY ASC ">;
-				static constexpr meta::string trailer = meta::stom_v<" AUTOINCREMENT">;
-
-				static constexpr meta::string value = header + ResolveKyCause<T::KyCause>::value + trailer;
+			;
 			};
 
 			static constexpr meta::string value = resolve<T::cons_trait>::value;
@@ -375,7 +365,7 @@ namespace Timey {
 
 	public:
 		static constexpr meta::string value = catNames<ColStmts...>::value;
-		static constexpr meta::string value_wp = meta::stom_v<"( ">  + value + meta::stom_t<" )">;
+		static constexpr meta::string value_wp = meta::stom_v<"( ">  + value + meta::stom_v<" )">;
 
 
 	};
@@ -480,7 +470,7 @@ namespace Timey {
 
 	public:
 
-		static constexpr meta::string stmt = header + Cols::value_wp + meta::stom_v<" REFERENCES "> + meta::unwrap_t<TbName> + FgnCols::value_wp + resolveDelCaue<DelCause> + resolveUpdtCaue<UpdtCause>;
+		static constexpr meta::string stmt = header + Cols::value_wp + meta::stom_v<" REFERENCES "> + meta::unwrap_v<TbName> + FgnCols::value_wp + resolveDelCaue<DelCause>::value + resolveUpdtCaue<UpdtCause>::value;
 
 	};
 

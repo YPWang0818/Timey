@@ -5,6 +5,9 @@
 namespace Timey {
 
 	// The abstract class for sessions, tags, projects, tags group, project group.
+
+
+
 	struct BaseObject {
 		std::string name;
 		uint32_t ID; 
