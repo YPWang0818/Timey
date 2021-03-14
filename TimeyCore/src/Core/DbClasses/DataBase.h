@@ -65,10 +65,10 @@ namespace Timey {
 				return 1;
 			}
 			for (std::size_t i = 0; i < sizeof...(lhs); ++i) {
-				if (a.c_str[i] < b.c_str[i]) {
+				if(a.c_str[i] < b.c_str[i]) {
 					return -1;
 				}
-				if (a.c_str[i] > b.c_str[i]) {
+				if(a.c_str[i] > b.c_str[i]) {
 					return 1;
 				}
 			}
@@ -158,6 +158,7 @@ namespace Timey {
 			};
 
 
+
 		}  // namespace impls
 
 		template <auto wrapper>
@@ -181,7 +182,14 @@ namespace Timey {
 		template <wrap ... wrappers>
 		using strcat_t = typename impl::mstr_cat<unwrap_t<wrappers>...>::type;
 
-
+		template<wrap a, wrap b>
+		struct compare_t {
+			//static constexpr string upper = unwrap_v<a>;
+			//static constexpr string lower = unwrap_v<b>;
+			//static constexpr bool v= compare(upper, lower);
+			using value_t = std::integral_constant<int, compare(unwrap_v<a>, unwrap_v<b>) >;
+			static constexpr int value = value_t::value;
+		};
 	}
 
 	struct ConflictCause {
@@ -267,7 +275,6 @@ namespace Timey {
 		struct Real {};
 		struct Text {};
 		struct Blob {};
-		struct Neumeric{};
 	};
 
 
@@ -322,8 +329,6 @@ namespace Timey {
 		};
 
 		
-
-
 
 		template<typename Fst, typename ... Rest>
 		struct getConstraintVal {
@@ -553,7 +558,120 @@ namespace Timey {
 	};
 
 
+	template<meta::wrap name, typename T, typename ... Meta>
+	struct ComponetInfo {
+
+		ComponetInfo(T* data)
+			:Data(data) {};
+
+		T* Data;
+
+		static constexpr meta::string name_v = meta::unwrap_v<name>;
+
+	private:
+
+		template<typename U>
+		struct getType {
+
+			static constexpr bool isInteger = std::is_integral_v<U>;
+			static constexpr bool isReal = std::is_floating_point_v<U>;
+			static constexpr bool isText = std::is_same_v<U, const char*> || std::is_same_v<U, std::string>;
+			static constexpr bool isBlob = !(isInteger && isReal && isText);
+
+			template<bool b1, bool b2, bool b3, bool b4 >
+			struct checkType {
+				using colType = void;
+			};
+
+			template<>
+			struct checkType<true, false, false, false>
+			{
+				using colType = ColumnType::Integer;
+			};
+
+			template<>
+			struct checkType<false, true, false, false>
+			{
+				using colType = ColumnType::Real;
+			};
+
+
+			template<>
+			struct checkType<false, false, true, false>
+			{
+				using colType = ColumnType::Text;
+			};
+
+
+			template<>
+			struct checkType<false, false, false, true>
+			{
+				using colType = ColumnType::Blob;
+			};
+
+			using Type = typename checkType<isInteger, isReal, isText, isBlob>::colType;
+		};
+		
+	public:
+		using Comp_t = T;
 	
+	};
+
+	template <typename ... CompInfo>
+	struct Components {
+
+		Components(CompInfo &&... args) 
+			:m_components{ std::make_tuple<CompInfo&&...>(std::forward<CompInfo>(args)...) }
+		{}
+
+		typedef  std::tuple<CompInfo...> comps_tuple;
+		typedef  std::tuple<CompInfo&&...> comps_tuple_rv;
+
+		template<meta::wrap name>
+		static constexpr std::size_t findIdx() {
+			return getIndex<name>::index;
+		};
+
+		template<meta::wrap name>
+		using findType = typename std::tuple_element<findIdx<name>(), comps_tuple>::type::Comp_t;
+
+	
+
+	private:
+
+		template<meta::wrap compName>
+		struct getIndex {
+
+			template<std::size_t n, typename ... T>
+			struct IdxLoop;
+
+			template<std::size_t k, typename fst, typename ... rst>
+			struct IdxLoop <k, fst, rst...>{
+				using idx_t = std::conditional_t<meta::compare_t<compName, fst::name_v>::value == 0, std::integral_constant<int, k>, typename IdxLoop<k+1, rst...>::idx_t>;
+
+				constexpr static int idx = idx_t::value;
+					
+			};
+
+			template<std::size_t k, typename T>
+			struct IdxLoop<k, T>
+			{
+				using idx_t = std::conditional_t<meta::compare_t<compName, T::name_v>::value == 0, std::integral_constant<int, k>, std::integral_constant<int, -1>>;
+
+				constexpr static std::size_t idx = idx_t::value;
+			};
+		
+			constexpr static int index = IdxLoop<0, CompInfo...>::idx;
+		
+		};
+
+	private:
+		std::tuple<CompInfo &&...> m_components;
+
+	};
+	
+
+
 
 	template<typename T>
 	class DataBase {
