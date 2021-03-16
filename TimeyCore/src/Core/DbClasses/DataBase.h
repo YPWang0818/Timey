@@ -562,7 +562,10 @@ namespace Timey {
 	struct ComponetInfo {
 
 		ComponetInfo(T* data)
-			:Data(data) {};
+			:Data(data) {
+		
+		
+		};
 
 		T* Data;
 
@@ -585,47 +588,41 @@ namespace Timey {
 
 			template<>
 			struct checkType<true, false, false, false>
-			{
-				using colType = ColumnType::Integer;
-			};
+			{	using colType = ColumnType::Integer; };
 
 			template<>
 			struct checkType<false, true, false, false>
-			{
-				using colType = ColumnType::Real;
-			};
+			{ using colType = ColumnType::Real; };
 
 
 			template<>
 			struct checkType<false, false, true, false>
-			{
-				using colType = ColumnType::Text;
-			};
+			{ using colType = ColumnType::Text; };
 
 
 			template<>
 			struct checkType<false, false, false, true>
-			{
-				using colType = ColumnType::Blob;
-			};
+			{ using colType = ColumnType::Blob; };
 
 			using Type = typename checkType<isInteger, isReal, isText, isBlob>::colType;
 		};
 		
 	public:
 		using Comp_t = T;
+		using Column_t = ColumnStmt<name, T, Meta...>;
 	
 	};
 
-	template <typename ... CompInfo>
+	template <meta::wrap TbName, typename ... CompInfo>
 	struct Components {
 
-		Components(CompInfo &&... args) 
-			:m_components{ std::make_tuple<CompInfo&&...>(std::forward<CompInfo>(args)...) }
-		{}
+		Components(CompInfo ... args) 
+			:m_components{ std::make_tuple<CompInfo...>(std::forward<CompInfo>(args)...) }
+		{ }
 
-		typedef  std::tuple<CompInfo...> comps_tuple;
-		typedef  std::tuple<CompInfo&&...> comps_tuple_rv;
+		using compsTuple_t = std::tuple<CompInfo...>;
+		constexpr static meta::string tableName = meta::unwrap_v<TbName>;
+
 
 		template<meta::wrap name>
 		static constexpr std::size_t findIdx() {
@@ -633,9 +630,15 @@ namespace Timey {
 		};
 
 		template<meta::wrap name>
-		using findType = typename std::tuple_element<findIdx<name>(), comps_tuple>::type::Comp_t;
+		using findType = typename std::tuple_element<findIdx<name>(), compsTuple_t>::type::Comp_t;
 
-	
+		template<meta::wrap name>
+		inline auto* getData() {
+			return std::get<findIdx<name>()>(m_components).Data;
+		}
+		
+
+
 
 	private:
 
@@ -666,37 +669,52 @@ namespace Timey {
 		};
 
 	private:
-		std::tuple<CompInfo &&...> m_components;
+		std::tuple<CompInfo ...> m_components;
 
 	};
 	
 
 
 
-	template<typename T>
+	template<typename Comps>
 	class DataBase {
 
 		DataBase(const std::string& filepath) {
 			m_sqliteWrapper = CreateScope<CoreDataBase>(filepath);
 		};
 
-		int InsertRow(const T& row) { return 0; };
+		int InsertRow(const Comps& row) { return 0; };
 		int DeleteRow(uint32_t Id) { return 0; };
-		Ref<T> FetchRow(uint32_t Id) { return nullptr; };
-		RefList<T> FindRows(const T& rowdata) { return nullptr; };
-		Ref<T> UpdateRow(uint32_t Id, const T& rowdata) { return nullptr; };
+		Ref<Comps> FetchRow(uint32_t Id) { return nullptr; };
+		RefList<Comps> FindRows(const Comps& rowdata) { return nullptr; };
+		Ref<Comps> UpdateRow(uint32_t Id, const Comps& rowdata) { return nullptr; };
 
 
 		template<typename U>
 		Ref<U> getComponent(uint32_t rowID) { return nullptr; };
 
 		template<typename U>
-		Ref<U> getComponent(const T& row) { return nullptr; };
+		Ref<U> getComponent(const Comps& row) { return nullptr; };
 
 		template<typename U>
 		DataBase<U>* getComponentDb() { return nullptr; };
 
 	
+
+	private:
+		template<typename T>
+		struct getCreateTableStmt {
+			using tuple_t = typename T::compsTuple_t;
+
+			template<typename U>
+			struct getCompsInfo;
+
+			template <typename ... Info>
+			struct getCompsInfo<std::tuple<Info...>> {
+				
+			};
+
+		};
 
 	private:
 		Scope<CoreDataBase> m_sqliteWrapper;
