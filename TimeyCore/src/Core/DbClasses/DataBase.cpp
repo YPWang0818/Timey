@@ -145,5 +145,21 @@ CREATE TABLE projects (
 		TIMEY_CORE_TRACE((const char*)SessionDb::createTableStmt);
 		TIMEY_CORE_TRACE((const char*)ProjectDb::createTableStmt);
 
+
+		TIMEY_CORE_TRACE((const char*)SessionDb::insertStmt);
+		TIMEY_CORE_TRACE((const char*)ProjectDb::insertStmt);
+
+
+		TIMEY_CORE_TRACE((const char*)SessionDb::selectStmt);
+		TIMEY_CORE_TRACE((const char*)ProjectDb::selectStmt);
+
+
+		TIMEY_CORE_TRACE((const char*)SessionDb::deleteStmt);
+		TIMEY_CORE_TRACE((const char*)ProjectDb::deleteStmt);
+
+
+		TIMEY_CORE_TRACE((const char*)SessionDb::updateStmt);
+		TIMEY_CORE_TRACE((const char*)ProjectDb::updateStmt);
+
 	};
  }

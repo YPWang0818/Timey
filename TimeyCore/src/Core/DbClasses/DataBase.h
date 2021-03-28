@@ -525,13 +525,17 @@ namespace Timey {
 
 		template<typename fst, typename ... rest>
 		struct catColumns{
-			static constexpr meta::string value = padding + fst::stmt + delimiter + catColumns<rest...>::value;
+			static constexpr meta::string value = padding + fst::stmt + delimiter +  catColumns<rest...>::value;
+			static constexpr meta::string colNames = padding + fst::name + delimiter + catColumns<rest...>::colNames;
+			static constexpr uint32_t count = catColumns<rest...>::count + 1;
 		};
 
 		template<typename fst>
 		struct catColumns<fst>{
 			static constexpr meta::string value = padding + fst::stmt;
-		};
+			static constexpr meta::string colNames = padding + fst::name;
+			static constexpr uint32_t count = 1;
+		}; // No column is not handled. 
 
 		template<typename T>
 		struct getFgnKey {
@@ -559,12 +563,114 @@ namespace Timey {
 
 		static constexpr meta::string name = meta::unwrap_v<tbName>;
 		static constexpr meta::string stmt = header + catColumns<Cols...>::value + getPriKey<PriKey>::value + getFgnKey<FgnKeys>::value + trailer;
+		static constexpr meta::string allKeysNames_wp = meta::stom_v<"( "> +catColumns<Cols...>::colNames + meta::stom_v<") ">;
 
-		using primaryKey = PriKey;
+		using allCols_t = typename ColNames<Cols...>;
+
+		using colCounts_t = std::integral_constant<uint32_t, catColumns<Cols...>::count>;
+		using primaryKey = PriKey; // Dosen't consider the case when primary keys are in the column constraint. 
 		using foreignKeys = FgnKeys;
-
 		using name_t = meta::unwrap_t<tbName>;
 	};
+
+
+	template<typename Tb>
+	struct InsertStmt {
+	private:
+		static constexpr meta::string header = meta::stom_v<"INSERT INTO  ">;
+		static constexpr meta::string trialer = meta::stom_v<" ); ">;
+
+		template<typename T>
+		struct getColNameList {
+			static constexpr meta::string nameList = T::allKeysNames_wp;
+		};
+
+
+		template<typename T>
+		struct getParams;
+
+		template<uint32_t n>
+		struct getParams<std::integral_constant<uint32_t, n>>{
+			static constexpr meta::string params = getParams<std::integral_constant<uint32_t, n - 1>>::params + meta::stom_v<", ?"> + meta::itom_v<n>;
+		};
+
+		template<>
+		struct getParams<std::integral_constant<uint32_t, 1>> {
+			static constexpr meta::string params = meta::stom_v<" ?1">;
+		};
+
+	public:
+
+		static constexpr meta::string stmt = header + Tb::name + getColNameList<Tb>::nameList + meta::stom_v<" VALUES( ">  + getParams<typename Tb::colCounts_t>::params + trialer;
+
+
+	};
+
+	template<typename Tb>
+	struct SelectStmt {
+	
+	private:
+		static constexpr meta::string header = meta::stom_v<"SELECT * FROM ">;
+		static constexpr meta::string trailer = meta::stom_v<" WHERE id == ?1;">;
+
+
+	public:
+		static constexpr meta::string stmt = header + Tb::name + trailer;
+	};
+
+
+	template<typename Tb>
+	struct DeleteStmt {
+
+	private:
+		static constexpr meta::string header = meta::stom_v<"DELETE FROM ">;
+		static constexpr meta::string trailer = meta::stom_v<" WHERE id == ?1;">;
+
+
+	public:
+		static constexpr meta::string stmt = header + Tb::name + trailer;
+
+	};
+
+
+	template<typename Tb>
+	struct UpdateStmt {
+	
+	private:
+		static constexpr meta::string header = meta::stom_v<"UPDATE  ">;
+		static constexpr meta::string trailer = meta::stom_v<" WHERE id == ?1;">;
+		static constexpr meta::string delimiter = meta::stom_v<",\n ">;
+	
+		template<typename T>
+		struct getSetParams {
+
+			template<typename idx, typename U>
+			struct loopCols;
+
+			template<uint32_t n, typename fst, typename ... rst>
+			struct loopCols<std::integral_constant<uint32_t, n>, ColNames<fst, rst...>> {
+				static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> + meta::itom_v<n + 1> + 
+					delimiter + loopCols<std::integral_constant<uint32_t, n - 1>, ColNames<rst...>>::value;
+			};
+
+			template<typename fst>
+			struct loopCols<std::integral_constant<uint32_t, 1>, ColNames<fst>> {
+				static constexpr meta::string value = fst::name + meta::stom_v<" = ?2">;
+			};
+
+			static constexpr meta::string setParams = loopCols<T::colCounts_t, T::allCols_t>::value;
+		
+		};
+
+
+	public:
+		static constexpr meta::string stmt = header + Tb::name + meta::stom_v<" \n SET "> + getSetParams<Tb>::setParams
+			+ meta::stom_v<"\n"> + trailer;
+
+	
+	};
+
+
 
 
 	template<strP name, typename T, typename ... Meta>
@@ -722,8 +828,16 @@ namespace Timey {
 
 		};
 
+		
+
 
 		static constexpr meta::string  createTableStmt = getCreateTableStmt<typename Comps::comps_tuple_>::tbStmt::stmt;
+		using rawTbStmt_ = typename getCreateTableStmt<typename Comps::comps_tuple_>::tbStmt;
+
+		static constexpr meta::string  insertStmt = InsertStmt<rawTbStmt_>::stmt;
+		static constexpr meta::string  deleteStmt =  DeleteStmt<rawTbStmt_>::stmt;
+		static constexpr meta::string  updateStmt = UpdateStmt<rawTbStmt_>::stmt;
+		static constexpr meta::string  selectStmt = SelectStmt<rawTbStmt_>::stmt;
 
 	private:
 		Scope<CoreDataBase> m_sqliteWrapper;
