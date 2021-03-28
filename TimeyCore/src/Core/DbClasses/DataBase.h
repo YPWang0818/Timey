@@ -3,7 +3,7 @@
 #include "Core/Utilty.h"
 #include <tuple>
 #include <type_traits>
-		
+#include <string>	
 
 namespace Timey {
 
@@ -192,6 +192,8 @@ namespace Timey {
 		};
 	}
 
+	using strP = meta::wrap;
+
 	struct ConflictCause {
 		struct Undefined {};
 		struct RollBack  {};
@@ -244,14 +246,13 @@ namespace Timey {
 	};
 
 
-	template<meta::wrap str, typename trait>
+	template<strP str, typename Trait>
 	struct ColBaseConstraint {
-
-		using cons_trait = trait;
+		using cons_trait = Trait;
 		static constexpr meta::string value = meta::unwrap_v<str>;
 	};
 
-	struct Uniqe : ColBaseConstraint<"UNIQUE", ConstraintType::Unique> {
+	struct Unique : ColBaseConstraint<"UNIQUE", ConstraintType::Unique> {
 	};
 
 	struct NotNull : ColBaseConstraint<"NOT NULL", ConstraintType::NotNull> {
@@ -278,12 +279,12 @@ namespace Timey {
 	};
 
 
-	template<meta::wrap colname, typename ColType, typename ... Constraints>
+	template<strP colName, typename ColType, typename ... Constraints>
 	struct ColumnStmt {
 
 	private:
 		static constexpr meta::string padding = meta::stom_v<" ">;
-		static constexpr meta::string header = padding + meta::unwrap_v<colname>;
+		static constexpr meta::string header = padding + meta::unwrap_v<colName>;
 
 		template<typename>
 		struct getTypeVal;
@@ -329,9 +330,11 @@ namespace Timey {
 		};
 
 		
+		template<typename ... Params>
+		struct getConstraintVal;
 
 		template<typename Fst, typename ... Rest>
-		struct getConstraintVal {
+		struct getConstraintVal<typename Fst, typename Rest...>{
 			static constexpr meta::string value = padding + resolveConstraints<Fst>::value + getConstraintVal<Rest...>::value;
 		};
 
@@ -340,11 +343,17 @@ namespace Timey {
 			static constexpr meta::string value = padding + resolveConstraints<Fst>::value;
 		};
 
+		template<>
+		struct getConstraintVal<>{
+			static constexpr meta::string value = padding;
+		};
+
+
 	public:
 		static constexpr meta::string stmt = header + getTypeVal<ColType>::value
 			+ getConstraintVal<Constraints...>::value;
 
-		static constexpr meta::string name = meta::unwrap_v<colname>;
+		static constexpr meta::string name = meta::unwrap_v<colName>;
 		static constexpr meta::string coltype = getTypeVal<ColType>::value;
 	
 	};
@@ -403,7 +412,7 @@ namespace Timey {
 	};
 	
 
-	template<meta::wrap TbName, typename UpdtCause, typename DelCause, typename Cols, typename FgnCols>
+	template<strP tbName, typename UpdtCause, typename DelCause, typename Cols, typename FgnCols>
 	struct FgnKey {
 
 	private:
@@ -475,7 +484,7 @@ namespace Timey {
 
 	public:
 
-		static constexpr meta::string stmt = header + Cols::value_wp + meta::stom_v<" REFERENCES "> + meta::unwrap_v<TbName> + FgnCols::value_wp + resolveDelCaue<DelCause>::value + resolveUpdtCaue<UpdtCause>::value;
+		static constexpr meta::string stmt = header + Cols::value_wp + meta::stom_v<" REFERENCES "> + meta::unwrap_v<tbName> + FgnCols::value_wp + resolveDelCaue<DelCause>::value + resolveUpdtCaue<UpdtCause>::value;
 
 	};
 
@@ -504,13 +513,13 @@ namespace Timey {
 	
 
 
-	template<meta::wrap tbname, typename PriKey, typename FgnKeys, typename ... Cols>
+	template<strP tbName, typename PriKey, typename FgnKeys, typename ... Cols>
 	struct TableStmt {
 
 	private:
 		static constexpr meta::string padding = meta::stom_v<" ">;
 		static constexpr meta::string delimiter = meta::stom_v<",\n">;
-		static constexpr meta::string header = meta::stom_v<"CREATE TABLE "> + meta::unwrap_v<tbname> +meta::stom_v<" (\n">;
+		static constexpr meta::string header = meta::stom_v<"CREATE TABLE "> + meta::unwrap_v<tbName> +meta::stom_v<" (\n">;
 		static constexpr meta::string trailer = meta::stom_v < ");">;
 
 
@@ -548,23 +557,22 @@ namespace Timey {
 
 	public:
 
-		static constexpr meta::string name = meta::unwrap_v<tbname>;
+		static constexpr meta::string name = meta::unwrap_v<tbName>;
 		static constexpr meta::string stmt = header + catColumns<Cols...>::value + getPriKey<PriKey>::value + getFgnKey<FgnKeys>::value + trailer;
 
 		using primaryKey = PriKey;
 		using foreignKeys = FgnKeys;
 
-		using name_t = meta::unwrap_t<tbname>;
+		using name_t = meta::unwrap_t<tbName>;
 	};
 
 
-	template<meta::wrap name, typename T, typename ... Meta>
+	template<strP name, typename T, typename ... Meta>
 	struct ComponetInfo {
 
 		ComponetInfo(T* data)
 			:Data(data) {
-		
-		
+	
 		};
 
 		T* Data;
@@ -576,10 +584,10 @@ namespace Timey {
 		template<typename U>
 		struct getType {
 
-			static constexpr bool isInteger = std::is_integral_v<U>;
+			static constexpr bool isInteger = std::numeric_limits<U>::is_integer;
 			static constexpr bool isReal = std::is_floating_point_v<U>;
-			static constexpr bool isText = std::is_same_v<U, const char*> || std::is_same_v<U, std::string>;
-			static constexpr bool isBlob = !(isInteger && isReal && isText);
+			static constexpr bool isText = std::is_same_v<U, char*> || std::is_same_v<U, std::string>;
+			static constexpr bool isBlob = !(isInteger || isReal || isText);
 
 			template<bool b1, bool b2, bool b3, bool b4 >
 			struct checkType {
@@ -609,11 +617,11 @@ namespace Timey {
 		
 	public:
 		using Comp_t = T;
-		using Column_t = ColumnStmt<name, T, Meta...>;
+		using Column_t = ColumnStmt<name, typename getType<T>::Type, Meta...>;
 	
 	};
 
-	template <meta::wrap TbName, typename ... CompInfo>
+	template <typename ... CompInfo>
 	struct Components {
 
 		Components(CompInfo ... args) 
@@ -621,7 +629,6 @@ namespace Timey {
 		{ }
 
 		using compsTuple_t = std::tuple<CompInfo...>;
-		constexpr static meta::string tableName = meta::unwrap_v<TbName>;
 
 
 		template<meta::wrap name>
@@ -644,6 +651,8 @@ namespace Timey {
 
 		template<meta::wrap compName>
 		struct getIndex {
+
+
 
 			template<std::size_t n, typename ... T>
 			struct IdxLoop;
@@ -676,8 +685,11 @@ namespace Timey {
 
 
 
-	template<typename Comps>
+	template<strP dbName, typename Comps>
 	class DataBase {
+
+	public:
+
 
 		DataBase(const std::string& filepath) {
 			m_sqliteWrapper = CreateScope<CoreDataBase>(filepath);
@@ -696,30 +708,25 @@ namespace Timey {
 		template<typename U>
 		Ref<U> getComponent(const Comps& row) { return nullptr; };
 
-		template<typename U>
-		DataBase<U>* getComponentDb() { return nullptr; };
 
-	
-
-	private:
 		template<typename T>
 		struct getCreateTableStmt {
-			using tuple_t = typename T::compsTuple_t;
+		};
 
-			template<typename U>
-			struct getCompsInfo;
 
-			template <typename ... Info>
-			struct getCompsInfo<std::tuple<Info...>> {
-				
-			};
+		template <typename ... CompInfo>
+		struct getCreateTableStmt<std::tuple<CompInfo...>>
+		{
+			using colID = typename ColumnStmt<"id", ColumnType::Integer, NotNull, PrimaryKey>;
+			using tbStmt = typename TableStmt<dbName, void, void, colID, typename CompInfo::Column_t...>;
 
 		};
 
+
+		static constexpr meta::string  createTableStmt = getCreateTableStmt<typename Comps::comps_tuple_>::tbStmt::stmt;
+
 	private:
 		Scope<CoreDataBase> m_sqliteWrapper;
-
-
 	};
 
 	void print_res();
