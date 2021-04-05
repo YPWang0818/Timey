@@ -18,6 +18,10 @@
 #include <unordered_set>
 #include <random>
 
+#include <tuple>
+#include <type_traits>
+#include <typeinfo>
+
 //porject internal headers
 
 #include "Core/Log.h"

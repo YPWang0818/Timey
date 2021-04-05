@@ -1,9 +1,6 @@
 #pragma once
-#include "CoreDataBase.h"
-#include "Core/Utilty.h"
-#include <tuple>
-#include <type_traits>
-#include <string>	
+#include "timey_pch.h"
+#include "sqlite3.h"
 
 namespace Timey {
 
@@ -650,15 +647,15 @@ namespace Timey {
 			template<uint32_t n, typename fst, typename ... rst>
 			struct loopCols<std::integral_constant<uint32_t, n>, ColNames<fst, rst...>> {
 				static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> + meta::itom_v<n + 1> + 
-					delimiter + loopCols<std::integral_constant<uint32_t, n - 1>, ColNames<rst...>>::value;
+					delimiter + loopCols<std::integral_constant<uint32_t, n + 1>, ColNames<rst...>>::value;
 			};
 
-			template<typename fst>
-			struct loopCols<std::integral_constant<uint32_t, 1>, ColNames<fst>> {
-				static constexpr meta::string value = fst::name + meta::stom_v<" = ?2">;
+			template<uint32_t n, typename fst>
+			struct loopCols<std::integral_constant<uint32_t, n>, ColNames<fst>> {
+				static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> + meta::itom_v<n + 1>;
 			};
 
-			static constexpr meta::string setParams = loopCols<T::colCounts_t, T::allCols_t>::value;
+			static constexpr meta::string setParams = loopCols<std::integral_constant<uint32_t, 1>, T::allCols_t>::value;
 		
 		};
 
@@ -669,7 +666,6 @@ namespace Timey {
 
 	
 	};
-
 
 
 
@@ -789,7 +785,7 @@ namespace Timey {
 	};
 	
 
-
+	class SqliteDb;
 
 	template<strP dbName, typename Comps>
 	class DataBase {
@@ -797,8 +793,9 @@ namespace Timey {
 	public:
 
 
-		DataBase(const std::string& filepath) {
-			m_sqliteWrapper = CreateScope<CoreDataBase>(filepath);
+		DataBase(const std::string& filepath) 
+		{
+			sqliteCoreDb = std::make_unique<SqliteDb>(filepath);
 		};
 
 		int InsertRow(const Comps& row) { return 0; };
@@ -835,13 +832,77 @@ namespace Timey {
 		using rawTbStmt_ = typename getCreateTableStmt<typename Comps::comps_tuple_>::tbStmt;
 
 		static constexpr meta::string  insertStmt = InsertStmt<rawTbStmt_>::stmt;
-		static constexpr meta::string  deleteStmt =  DeleteStmt<rawTbStmt_>::stmt;
+		static constexpr meta::string  deleteStmt = DeleteStmt<rawTbStmt_>::stmt;
 		static constexpr meta::string  updateStmt = UpdateStmt<rawTbStmt_>::stmt;
 		static constexpr meta::string  selectStmt = SelectStmt<rawTbStmt_>::stmt;
 
 	private:
-		Scope<CoreDataBase> m_sqliteWrapper;
+
+		std::unique_ptr<SqliteDb> sqliteCoreDb;
+	
+
+		
 	};
 
+	class SqliteDb;
+
+	class SqliteQuery {
+
+	public:
+		SqliteQuery(const std::string& queryStr)
+			:query(queryStr) {};
+
+		~SqliteQuery() {};
+
+		
+		int bindDb(SqliteDb& db); // Binding db will make the qurey status become prepared.
+		void unbindDb();
+
+		int bindColumnInteger(uint32_t idx, int value);
+		int bindColumnReal(uint32_t idx , double value);
+		int bindColumnText(uint32_t idx, const char* value);
+		int bindColumnNull(uint32_t idx);
+		int bindColumnBlob(uint32_t idx, const void* data, uint32_t size);
+
+
+		inline bool isPrepared() { return prepared; };
+		inline SqliteDb* getDbHandle() { return bindedDb; };
+	private:
+		void bdErrorMsg(int errcode);
+	private:
+		bool prepared = false;
+
+		SqliteDb* bindedDb = nullptr;
+		sqlite3_stmt* stmt = nullptr;
+		std::string query;
+
+
+	};
+
+	class SqliteDb {
+
+	public:
+		SqliteDb(const std::string& filePath)
+			:dbPath(filePath)
+		{
+			initDb(filePath);
+		};
+
+		~SqliteDb() {
+			closeDb();
+		};
+
+		inline sqlite3* getRawDbHanle() { return sqliteHandle; };
+
+	private:
+		void initDb(const std::string& filePath);
+		void closeDb();
+
+		sqlite3* sqliteHandle;
+		std::string dbPath;
+	};
+
+
 	void print_res();
+
 };

@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\DBtest.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\ProjectGroupDataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\Query.cpp" />

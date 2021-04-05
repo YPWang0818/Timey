@@ -86,6 +86,7 @@
     <ClCompile Include="src\timey_pch.cpp" />
     <ClCompile Include="src\Core\TimeyID.cpp" />
     <ClCompile Include="src\Core\TimeyTime.cpp" />
+    <ClCompile Include="src\Core\DbClasses\DBtest.cpp" />
     <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
   </ItemGroup>
 </Project>
