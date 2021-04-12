@@ -88,6 +88,7 @@ namespace Timey {
 
 	void print_res() {
 
+		/*
 		init_database();
 		TIMEY_CORE_TRACE((const char*)SessionDb::createTableStmt);
 		TIMEY_CORE_TRACE((const char*)ProjectDb::createTableStmt);
@@ -107,6 +108,16 @@ namespace Timey {
 
 		TIMEY_CORE_TRACE((const char*)SessionDb::updateStmt);
 		TIMEY_CORE_TRACE((const char*)ProjectDb::updateStmt);
+		*/
+
+		SQLiteEntry e1;
+		SQLiteEntry e2 = 12;
+		SQLiteEntry e3 = 4.4f;
+
+		SQLiteEntry e4 = { (void*)"Hello World", sizeof("Hello World") };
+
+
+		TIMEY_CORE_TRACE(e4.data.c);
 
 	};
  }

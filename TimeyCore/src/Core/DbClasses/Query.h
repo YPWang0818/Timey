@@ -5,11 +5,6 @@
 
 namespace Timey {
 
-	
-
-										
-	
-
 	class CoreDataBase;
 
 	class Query {

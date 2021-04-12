@@ -56,15 +56,16 @@ namespace Timey {
 	void SqliteQuery::unbindDb()
 	{
 		sqlite3_finalize(stmt);
+		resetRow();
 		stmt = nullptr;
 		bindedDb = nullptr;
-
 		prepared = false;
 
 	}
 
 	int SqliteQuery::bindColumnInteger(uint32_t idx, int value)
 	{
+		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
 		int ok = sqlite3_bind_int(stmt, idx, value);
 		bdErrorMsg(ok);
 
@@ -73,6 +74,8 @@ namespace Timey {
 
 	int SqliteQuery::bindColumnReal(uint32_t idx, double value)
 	{
+		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
+
 		int ok = sqlite3_bind_double(stmt, idx, value);
 		bdErrorMsg(ok);
 
@@ -81,6 +84,8 @@ namespace Timey {
 
 	int SqliteQuery::bindColumnText(uint32_t idx, const char* value)
 	{
+		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
+
 		int ok = sqlite3_bind_text(stmt, idx, value, -1, nullptr);
 		bdErrorMsg(ok);
 
@@ -89,6 +94,7 @@ namespace Timey {
 
 	int SqliteQuery::bindColumnNull(uint32_t idx)
 	{
+		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
 		int ok = sqlite3_bind_null(stmt, idx);
 		bdErrorMsg(ok);
 
@@ -97,10 +103,63 @@ namespace Timey {
 
 	int SqliteQuery::bindColumnBlob(uint32_t idx, const void* data, uint32_t size)
 	{
+		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
 		int ok = sqlite3_bind_blob(stmt, idx, data, size, nullptr);
 		bdErrorMsg(ok);
 
 		return ok;
+	}
+
+	int SqliteQuery::unbindAllColumns()
+	{
+		return sqlite3_clear_bindings(stmt);
+	
+	}
+
+	int SqliteQuery::exec()
+	{
+		TIMEY_CORE_ASSERT(( bindedDb != nullptr), "No database binded.");
+		
+		int ok = sqlite3_step(stmt);
+		if ((ok != SQLITE_ROW) && (ok != SQLITE_DONE)) {
+			TIMEY_CORE_ERROR("Execute query failure. Error code %d", ok);
+			return ok;
+		};
+
+		// TODO: return a sqlite table.
+
+		sqlite3_reset(stmt);
+		return ok;
+	}
+
+	int SqliteQuery::getRow()
+	{
+		TIMEY_CORE_ASSERT((bindedDb != nullptr), "No database binded.");
+
+		return 0;
+	}
+
+	int SqliteQuery::nextRow()
+	{
+		int ok = sqlite3_step(stmt);
+		rowCount++;
+
+		if (ok == SQLITE_ROW) {
+			return ok;
+		}
+		else if (ok == SQLITE_DONE) {
+			TIMEY_CORE_WARN("This is the last row.");
+			return ok;
+		};
+		TIMEY_CORE_ERROR("Execute query failure. Error code %d", ok);
+		return ok ;
+	}
+
+	void SqliteQuery::resetRow()
+	{
+		rowCount = 0;
+		sqlite3_reset(stmt);
+
 	}
 
 	void SqliteQuery::bdErrorMsg(int errcode)
