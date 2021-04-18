@@ -785,6 +785,7 @@ namespace Timey {
 	};
 	
 
+
 	class SqliteDb;
 
 	template<strP dbName, typename Comps>
@@ -844,7 +845,149 @@ namespace Timey {
 		
 	};
 
-	class SqliteDb;
+	enum SQLType {
+		integer = SQLITE_INTEGER,
+		real = SQLITE_FLOAT, // 64-bit.
+		text = SQLITE_TEXT,
+		blob = SQLITE_BLOB,
+		null = SQLITE_NULL,
+		undef = 0 // Undefined.
+
+	};
+
+
+	struct SqliteEntry {
+
+		union EntryData {
+			int64_t i; // SQLite Integer Type
+			double d; // SQLite Real Type
+			char* c; // SQLite Text Type
+			void* v; // SQLite BLOB Type
+		};
+
+		SQLType type = SQLType::undef;
+		std::size_t size = 0;
+		EntryData data;
+
+		SqliteEntry() {
+			data.v = nullptr;
+			size = 0;
+			type = SQLType::null;
+		};
+
+		template <typename T>
+		SqliteEntry(T Data) {
+
+			static constexpr bool isInteger = std::numeric_limits<std::remove_cvref_t<T>>::is_integer;
+			static constexpr bool isReal = std::is_floating_point_v<std::remove_cvref_t<T>>;
+			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, std::string>;
+			// Constr with one parameter only accept (cvref removed) std::string.  
+
+			static_assert(isInteger || isReal || isText);
+
+
+			if constexpr (isInteger) {
+				data.i = (int64_t)Data;
+				type = SQLType::integer;
+				size = sizeof(int64_t);
+			}
+			else if constexpr (isReal) {
+				data.d = (double)Data;
+				type = SQLType::real;
+				size = sizeof(double);
+			}
+			else if constexpr (isText) {
+
+				const char* src = Data.c_str();
+				data.c = (char*)malloc(Data.size() + 1);
+				strcpy(data.c, src);
+
+				type = SQLType::text;
+				size = Data.size();
+			}
+
+		};
+
+		template<typename T>
+		SqliteEntry(T Data, std::size_t sz) {
+
+			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, char const*> ||
+				std::is_same_v<std::remove_cvref_t<T>, char*>;
+
+			static constexpr bool isBlob = std::is_pointer_v<std::remove_cvref_t<T>> && (!isText);
+
+			static_assert(isText || isBlob);
+
+
+			if constexpr (isText) {
+
+				const char* src = Data;
+				data.c = (char*)malloc(sz);
+				strcpy(data.c, src);
+				type = SQLType::text;
+				size = sz;
+
+			}
+			else if constexpr (isBlob) {
+				const void* src = Data;
+				data.v = (void*)malloc(sz);
+				memcpy(data.v, src, sz);
+				type = SQLType::blob;
+				size = sz;
+
+			};
+
+		};
+
+		~SqliteEntry() {
+
+			if (type == SQLType::text || type == SQLType::blob) {
+				free((void*)data.c);
+			};
+		};
+
+		operator int64_t () { return data.i; };
+		operator long int() { return data.i; };
+		operator int() { return static_cast<int>(data.i); };
+
+
+		operator double() { return data.d; };
+		operator float() { return static_cast<float>(data.d); };
+
+		operator char const* () { return static_cast<char const*>(data.c); };
+		operator char* () { return data.c; }
+
+		operator void* () { return data.v; };
+
+
+	};
+
+	using SqliteRow = std::vector<SqliteEntry>;
+
+
+	class SqliteTable {
+
+	public:
+
+		inline int getColumnCount() const { return sqlite3_column_count(stmt); };
+		inline uint32_t getCurrentRow() const { return currentRow; };
+
+		SqliteRow getRow();
+		int nextRow();
+		void resetRow();
+
+
+	private:
+
+		//Instance of this class cannot be created on user end. 
+		//It can only be created using the Exec() method in SqliteQuery.
+
+		SqliteTable(sqlite3_stmt* stmt)
+			:stmt(stmt) {};
+
+		sqlite3_stmt* stmt;
+		uint32_t currentRow = 0;
+	};
 
 	class SqliteQuery {
 
@@ -865,14 +1008,7 @@ namespace Timey {
 		int bindColumnBlob(uint32_t idx, const void* data, uint32_t size);
 		int unbindAllColumns();
 
-		inline int getColumnCount() const { return sqlite3_column_count(stmt); };
-		inline uint32_t getCurrentRow() const { return rowCount; };
-
 		int exec();
-		int getRow();
-		int nextRow();
-		void resetRow();
-
 
 		inline bool isPrepared() { return prepared; };
 		inline SqliteDb* getDbHandle() { return bindedDb; };
@@ -886,8 +1022,9 @@ namespace Timey {
 		std::string query;
 		uint32_t rowCount = 0;
 
-
+		friend class SQLiteTable;
 	};
+
 
 	class SqliteDb {
 
@@ -913,111 +1050,13 @@ namespace Timey {
 	};
 
 
-	enum SQLType {
-		integer = SQLITE_INTEGER,
-		real = SQLITE_FLOAT, // 64-bit.
-		text = SQLITE_TEXT,
-		blob = SQLITE_BLOB,
-		null = SQLITE_NULL,
-		undef = 0 // Undefined.
 
-	};
 
-	struct SQLiteEntry {
 
-		union EntryData {
 
-			int64_t i; // SQLite Integer Type
-			double d; // SQLite Real Type
-			char* c; // SQLite Text Type
-			void* v; // SQLite BLOB Type
-		};
-		
-		SQLType type = SQLType::undef;
-		std::size_t size = 0;
-		EntryData data;
 
-		SQLiteEntry() {
-			data.v = nullptr;
-			size = 0;
-			type = SQLType::null;
-		};
 
-		template <typename T>
-		SQLiteEntry(T Data) {
-
-			static constexpr bool isInteger = std::numeric_limits<std::remove_cvref_t<T>>::is_integer;
-			static constexpr bool isReal = std::is_floating_point_v<std::remove_cvref_t<T>>;
-			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, std::string>; 
-			// Constr with one parameter only accept (cvref removed) std::string.  
-
-			static_assert(isInteger || isReal || isText);
-
-			
-			if constexpr (isInteger) {
-				data.i = (int64_t)Data;
-				type = SQLType::integer;
-				size = sizeof(int64_t);
-			}
-			else if constexpr (isReal) {
-				data.d = (double)Data;
-				type = SQLType::real;
-				size = sizeof(double);
-			}
-			else if constexpr (isText) {
-
-				const char* src = Data.c_str();
-				data.c = (char*)malloc( Data.size() + 1);
-				strcpy(data.c, src);
-
-				type = SQLType::text;
-				size = Data.size(); 
-			}
 	
-		};
-
-		template<typename T>
-		SQLiteEntry(T Data, std::size_t sz) {
-
-			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, char const*> || 
-										   std::is_same_v<std::remove_cvref_t<T>, char*>;
-
-			static constexpr bool isBlob = std::is_pointer_v<std::remove_cvref_t<T>> && (!isText) ;
-
-			static_assert(isText||isBlob);
-
-
-			if constexpr (isText) {
-			
-				const char* src = Data;
-				data.c = (char*)malloc(sz);
-				strcpy(data.c, src);
-				type = SQLType::text;
-				size = sz;
-				
-			}
-			else if constexpr (isBlob) {
-				const void* src = Data;
-				data.v = (void*)malloc(sz);
-				memcpy(data.v, src, sz);
-				type = SQLType::blob;
-				size = sz;
-			
-			}
-
-
-
-
-		};
-
-		~SQLiteEntry() {
-
-			if (type == SQLType::text || type == SQLType::blob) {
-				free((void*)data.c);
-			};
-		}
-
-	};
 
 	void print_res();
 

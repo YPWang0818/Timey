@@ -110,14 +110,14 @@ namespace Timey {
 		TIMEY_CORE_TRACE((const char*)ProjectDb::updateStmt);
 		*/
 
-		SQLiteEntry e1;
-		SQLiteEntry e2 = 12;
-		SQLiteEntry e3 = 4.4f;
+		SqliteEntry e1;
+		SqliteEntry e2 = 12;
+		SqliteEntry e3 = 4.4f;
 
-		SQLiteEntry e4 = { (void*)"Hello World", sizeof("Hello World") };
+		SqliteEntry e4 = { (void*)"Hello World", sizeof("Hello World") };
 
 
-		TIMEY_CORE_TRACE(e4.data.c);
+		TIMEY_CORE_TRACE((void*)e4);
 
 	};
  }

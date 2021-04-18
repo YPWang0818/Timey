@@ -56,7 +56,6 @@ namespace Timey {
 	void SqliteQuery::unbindDb()
 	{
 		sqlite3_finalize(stmt);
-		resetRow();
 		stmt = nullptr;
 		bindedDb = nullptr;
 		prepared = false;
@@ -132,17 +131,16 @@ namespace Timey {
 		return ok;
 	}
 
-	int SqliteQuery::getRow()
+	SqliteRow SqliteTable::getRow()
 	{
-		TIMEY_CORE_ASSERT((bindedDb != nullptr), "No database binded.");
 
-		return 0;
+		return SqliteRow();
 	}
 
-	int SqliteQuery::nextRow()
+	int SqliteTable::nextRow()
 	{
 		int ok = sqlite3_step(stmt);
-		rowCount++;
+		currentRow++;
 
 		if (ok == SQLITE_ROW) {
 			return ok;
@@ -155,9 +153,9 @@ namespace Timey {
 		return ok ;
 	}
 
-	void SqliteQuery::resetRow()
+	void SqliteTable::resetRow()
 	{
-		rowCount = 0;
+		currentRow = 0;
 		sqlite3_reset(stmt);
 
 	}
