@@ -131,10 +131,46 @@ namespace Timey {
 		return ok;
 	}
 
-	SqliteRow SqliteTable::getRow()
+	SqliteRow SqliteTable::getCurrentRow()
 	{
+		SqliteRow row;
 
-		return SqliteRow();
+		for (int col = 0; col < colCount; col++) {
+
+			//This switch statment should have explicit control over the type of SqliteEntry it creates.
+
+			switch (SqliteTable::getTypeFromNativeType(sqlite3_column_type(stmt, col))) {
+			case SQLType::integer: 
+				row.emplace_back(getEntryInt(col)); 
+				break;
+
+			case SQLType::blob: 
+				const void* data; std::size_t sz; 
+				data = getEntryBlob(col, sz);
+				row.emplace_back(data, sz);
+				break;
+
+			case SQLType::null:;
+				row.emplace_back();
+				break;
+
+			case SQLType::real:
+				row.emplace_back(getEntryReal(col));
+				break;
+
+			case SQLType::text:
+				const char* cdata; std::size_t csz;
+				cdata = getEntryText(col, csz);
+				row.emplace_back(data, csz);
+				break;
+
+			default:
+				TIMEY_CORE_ERROR("Undefined SQLType.");
+				break;
+			};
+		}
+
+		return row;
 	}
 
 	int SqliteTable::nextRow()
@@ -159,6 +195,104 @@ namespace Timey {
 		sqlite3_reset(stmt);
 
 	}
+
+	SqliteColumn SqliteTable::getColumn(std::size_t col)
+	{
+		sqlite3_reset(stmt); // reset to intitial row status. 
+
+		SqliteColumn column;
+		int nativeType;
+		int ok;
+
+		do {
+			 ok = sqlite3_step(stmt);
+			 
+			 //This switch statment should have explicit control over the type of SqliteEntry it creates.
+
+			 switch (SqliteTable::getTypeFromNativeType(sqlite3_column_type(stmt, col))) {
+			 case SQLType::integer:
+				 column.m_wrapper.emplace_back(getEntryInt(col));
+				 break;
+
+			 case SQLType::blob:
+				 const void* data; std::size_t sz;
+				 data = getEntryBlob(col, sz);
+				 column.m_wrapper.emplace_back(data, sz);
+				 break;
+
+			 case SQLType::null:;
+				 column.m_wrapper.emplace_back();
+				 break;
+
+			 case SQLType::real:
+				 column.m_wrapper.emplace_back(getEntryReal(col));
+				 break;
+
+			 case SQLType::text:
+				 const char* cdata; std::size_t csz;
+				 cdata = getEntryText(col, csz);
+				 column.m_wrapper.emplace_back(data, csz);
+				 break;
+
+			 default:
+				 TIMEY_CORE_ERROR("Undefined SQLType.");
+				 break;
+			 };
+
+		} while (ok == SQLITE_ROW);
+
+		if (ok != SQLITE_DONE) {
+			TIMEY_CORE_ERROR("[Sqlite3] Executing Failure. {0} \n", ok);
+		};
+
+		sqlite3_reset(stmt); // reset to intitial row again. 
+
+		for (int col = 0; col < currentRow; col++)
+		{
+			sqlite3_step(stmt); // restore the row status. 		
+		};
+
+		return column;
+
+	}
+
+	int64_t SqliteTable::getEntryInt(uint32_t col)
+	{
+		return sqlite3_column_int64(stmt, col);
+	}
+
+	double SqliteTable::getEntryReal(uint32_t col)
+	{
+		 return sqlite3_column_double(stmt, col);
+	}
+
+	const char* SqliteTable::getEntryText(uint32_t col, std::size_t& sz)
+	{
+		sz = sqlite3_column_bytes(stmt, col);
+		return (const char*)(sqlite3_column_text(stmt, col));
+	};
+
+	const void* SqliteTable::getEntryBlob(uint32_t col, std::size_t& sz)
+	{
+		sz = sqlite3_column_bytes(stmt, col);
+		return sqlite3_column_blob(stmt, col);
+	}
+
+	SQLType SqliteTable::getTypeFromNativeType(int type)
+	{
+		switch (type) {
+
+		case SQLITE_INTEGER: return SQLType::integer;
+		case SQLITE_FLOAT: return SQLType::real;
+		case SQLITE_TEXT: return SQLType::text;
+		case SQLITE_BLOB: return SQLType::blob;
+		case SQLITE_NULL: return SQLType::null;
+		default: return SQLType::undef;
+
+		};
+	};
+
+
 
 	void SqliteQuery::bdErrorMsg(int errcode)
 	{

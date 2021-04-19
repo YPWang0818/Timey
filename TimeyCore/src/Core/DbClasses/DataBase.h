@@ -962,20 +962,50 @@ namespace Timey {
 
 	};
 
+	class SQLiteTable;
 	using SqliteRow = std::vector<SqliteEntry>;
+	
+	class SqliteColumn 
+	{
+	public:
+		SqliteColumn() {
+			m_wrapper = std::vector<SqliteEntry>();
+			m_type = SQLType::undef;
+				
+		};
 
+		SqliteColumn(std::vector<SqliteEntry> data)
+			:m_wrapper(data)
+		{
+			m_type = SQLType::undef;
+		};
+
+		inline void changeType(SQLType tp) { m_type = tp; };
+		inline SQLType isType() { return m_type; };
+
+	private:
+		std::vector<SqliteEntry> m_wrapper;
+		SQLType m_type;
+
+		friend class SqliteTable;
+	};
+
+	
 
 	class SqliteTable {
 
 	public:
 
-		inline int getColumnCount() const { return sqlite3_column_count(stmt); };
+		inline int getColumnCount() const { return colCount; };
 		inline uint32_t getCurrentRow() const { return currentRow; };
 
-		SqliteRow getRow();
+		SqliteRow getCurrentRow();
 		int nextRow();
 		void resetRow();
 
+		SqliteColumn getColumn(std::size_t col);
+
+		SqliteColumn operator [] (std::size_t idx) { return getColumn(idx); };
 
 	private:
 
@@ -983,10 +1013,23 @@ namespace Timey {
 		//It can only be created using the Exec() method in SqliteQuery.
 
 		SqliteTable(sqlite3_stmt* stmt)
-			:stmt(stmt) {};
+			:stmt(stmt) { 
+			currentRow = 0;
+			colCount = sqlite3_column_count(stmt);
+		};
+
+		int64_t getEntryInt(uint32_t col);
+		double getEntryReal(uint32_t col);
+		const char* getEntryText(uint32_t col, std::size_t& sz);
+		const void* getEntryBlob(uint32_t col, std::size_t& sz);
+
+		static SQLType getTypeFromNativeType(int type);
+
+	private:
 
 		sqlite3_stmt* stmt;
 		uint32_t currentRow = 0;
+	    uint32_t colCount;
 	};
 
 	class SqliteQuery {
@@ -1048,12 +1091,6 @@ namespace Timey {
 		sqlite3* sqliteHandle;
 		std::string dbPath;
 	};
-
-
-
-
-
-
 
 
 	
