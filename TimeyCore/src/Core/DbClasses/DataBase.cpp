@@ -115,25 +115,26 @@ namespace Timey {
 	
 	}
 
-	int SqliteQuery::exec()
+	Ref<SqliteTable> SqliteQuery::exec()
 	{
 		TIMEY_CORE_ASSERT(( bindedDb != nullptr), "No database binded.");
 		
 		int ok = sqlite3_step(stmt);
 		if ((ok != SQLITE_ROW) && (ok != SQLITE_DONE)) {
 			TIMEY_CORE_ERROR("Execute query failure. Error code %d", ok);
-			return ok;
+			return nullptr;
 		};
 
-		// TODO: return a sqlite table.
 
 		sqlite3_reset(stmt);
-		return ok;
+		Ref<SqliteTable> tb{ new SqliteTable(stmt) };
+
+		return tb;
 	}
 
-	SqliteRow SqliteTable::getCurrentRow()
+	Ref<SqliteRow> SqliteTable::getCurrentRow()
 	{
-		SqliteRow row;
+		Ref<SqliteRow> row = CreateRef<SqliteRow>();
 
 		for (int col = 0; col < colCount; col++) {
 
@@ -141,27 +142,27 @@ namespace Timey {
 
 			switch (SqliteTable::getTypeFromNativeType(sqlite3_column_type(stmt, col))) {
 			case SQLType::integer: 
-				row.emplace_back(getEntryInt(col)); 
+				row->emplace_back(getEntryInt(col)); 
 				break;
 
 			case SQLType::blob: 
 				const void* data; std::size_t sz; 
 				data = getEntryBlob(col, sz);
-				row.emplace_back(data, sz);
+				row->emplace_back(data, sz);
 				break;
 
 			case SQLType::null:;
-				row.emplace_back();
+				row->emplace_back();
 				break;
 
 			case SQLType::real:
-				row.emplace_back(getEntryReal(col));
+				row->emplace_back(getEntryReal(col));
 				break;
 
 			case SQLType::text:
 				const char* cdata; std::size_t csz;
 				cdata = getEntryText(col, csz);
-				row.emplace_back(data, csz);
+				row->emplace_back(data, csz);
 				break;
 
 			default:
@@ -196,11 +197,11 @@ namespace Timey {
 
 	}
 
-	SqliteColumn SqliteTable::getColumn(std::size_t col)
+	Ref<SqliteColumn> SqliteTable::getColumn(std::size_t col)
 	{
 		sqlite3_reset(stmt); // reset to intitial row status. 
 
-		SqliteColumn column;
+		Ref<SqliteColumn> column = CreateRef<SqliteColumn>();
 		int nativeType;
 		int ok;
 
@@ -211,27 +212,27 @@ namespace Timey {
 
 			 switch (SqliteTable::getTypeFromNativeType(sqlite3_column_type(stmt, col))) {
 			 case SQLType::integer:
-				 column.m_wrapper.emplace_back(getEntryInt(col));
+				 column->emplace_back(getEntryInt(col));
 				 break;
 
 			 case SQLType::blob:
 				 const void* data; std::size_t sz;
 				 data = getEntryBlob(col, sz);
-				 column.m_wrapper.emplace_back(data, sz);
+				 column->emplace_back(data, sz);
 				 break;
 
 			 case SQLType::null:;
-				 column.m_wrapper.emplace_back();
+				 column->emplace_back();
 				 break;
 
 			 case SQLType::real:
-				 column.m_wrapper.emplace_back(getEntryReal(col));
+				 column->emplace_back(getEntryReal(col));
 				 break;
 
 			 case SQLType::text:
 				 const char* cdata; std::size_t csz;
 				 cdata = getEntryText(col, csz);
-				 column.m_wrapper.emplace_back(data, csz);
+				 column->emplace_back(data, csz);
 				 break;
 
 			 default:

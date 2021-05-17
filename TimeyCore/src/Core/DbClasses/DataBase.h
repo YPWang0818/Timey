@@ -964,7 +964,9 @@ namespace Timey {
 
 	class SQLiteTable;
 	using SqliteRow = std::vector<SqliteEntry>;
-	
+	using SqliteColumn = std::vector<SqliteEntry>;
+
+	/*
 	class SqliteColumn 
 	{
 	public:
@@ -989,34 +991,30 @@ namespace Timey {
 
 		friend class SqliteTable;
 	};
-
-	
+	*/
 
 	class SqliteTable {
 
+		friend class SqliteQuery;
 	public:
 
 		inline int getColumnCount() const { return colCount; };
 		inline uint32_t getCurrentRow() const { return currentRow; };
 
-		SqliteRow getCurrentRow();
+		Ref<SqliteRow> getCurrentRow();
 		int nextRow();
 		void resetRow();
 
-		SqliteColumn getColumn(std::size_t col);
-
-		SqliteColumn operator [] (std::size_t idx) { return getColumn(idx); };
-
 	private:
-
-		//Instance of this class cannot be created on user end. 
-		//It can only be created using the Exec() method in SqliteQuery.
-
+		// This class can only be constructed by exec() in SqliteQuery. 
 		SqliteTable(sqlite3_stmt* stmt)
-			:stmt(stmt) { 
+			:stmt(stmt) {
 			currentRow = 0;
 			colCount = sqlite3_column_count(stmt);
 		};
+
+		Ref<SqliteColumn> getColumn(std::size_t col);
+		Ref<SqliteColumn> operator [] (std::size_t idx) { return getColumn(idx); };
 
 		int64_t getEntryInt(uint32_t col);
 		double getEntryReal(uint32_t col);
@@ -1032,8 +1030,9 @@ namespace Timey {
 	    uint32_t colCount;
 	};
 
-	class SqliteQuery {
-
+	class SqliteQuery 
+	{
+		friend class SqliteTable;
 	public:
 		SqliteQuery(const std::string& queryStr)
 			:query(queryStr) {};
@@ -1051,7 +1050,7 @@ namespace Timey {
 		int bindColumnBlob(uint32_t idx, const void* data, uint32_t size);
 		int unbindAllColumns();
 
-		int exec();
+		Ref<SqliteTable> exec();
 
 		inline bool isPrepared() { return prepared; };
 		inline SqliteDb* getDbHandle() { return bindedDb; };
@@ -1065,9 +1064,7 @@ namespace Timey {
 		std::string query;
 		uint32_t rowCount = 0;
 
-		friend class SQLiteTable;
 	};
-
 
 	class SqliteDb {
 
