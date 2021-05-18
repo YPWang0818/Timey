@@ -1,10 +1,38 @@
 #include "timey_pch.h"
+#include <filesystem>
 #include "DataBase.h"
 
 
 namespace Timey {
 
+	namespace TestUtil {
 
+		static int rand_num(int max, int min = 0 ) {
+		
+			if (max <= min) return min;
+
+			static std::random_device randDev;
+			static std::mt19937 Gen(randDev());
+			static std::uniform_int_distribution<std::size_t> dist;
+
+			return min + ( dist(Gen) % (max - min + 1) );
+		}
+
+		static double rand_real(double max = 1.0, double min = 0.0) {
+			if (max <= min) return min;
+			static std::random_device randDev;
+			static std::mt19937 Gen(randDev());
+
+			std::uniform_real_distribution dist(min, max);
+			return dist(Gen);
+
+		}
+
+
+
+
+
+	};
 
 	static struct SessionID
 
@@ -109,7 +137,7 @@ namespace Timey {
 
 	};
 
-	static const std::string query_str = R"(
+	static const std::string sqlite_db_test_create_table_str = R"(
 	-- create session table
 	CREATE TABLE sessions (
 	session_id		INTEGER		 PRIMARY KEY AUTOINCREMENT,
@@ -138,42 +166,92 @@ namespace Timey {
     	ON UPDATE CASCADE);
 	)";
 
-	static const std::string insert_str = R"(INSERT INTO sessions (duration, start_year , start_month, start_day, 
+	static const std::string sqlite_db_test_insert_str = R"(INSERT INTO sessions (duration, start_year , start_month, start_day, 
 	start_hour, start_minute, start_second, end_year, end_month, end_day, end_hour, end_minute, end_second,
 	title, discription, project_id)      VALUES(?1, ?2 ,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16);
 	)";
 
+	static const std::string sqlite_db_test_select_str = R"( SELECT * FROM sessions WHERE session_id == ?1; )";
+
 	static void sqlite_db_test() {
 
-		SqliteDb* db = new SqliteDb{ "../databases/test.db" };
-		SqliteQuery* q = new SqliteQuery(query_str);
-		SqliteQuery* q_insert = new SqliteQuery(insert_str);
+		const std::string dbpath = "../databases/test.db";
+		namespace fs = std::filesystem;
+		if (fs::is_regular_file(dbpath)) {
+			fs::remove(dbpath);
+		}
 
-		q->bindDb(*db);
-		if (q->exec() == nullptr) { TIMEY_CORE_ERROR("Something is wrong.\n"); };
+		SqliteDb* db = new SqliteDb{ dbpath  };
+		SqliteQuery* q_create = new SqliteQuery(sqlite_db_test_create_table_str);
+		SqliteQuery* q_insert = new SqliteQuery(sqlite_db_test_insert_str);
+		SqliteQuery* q_select = new SqliteQuery(sqlite_db_test_select_str);
+
+		q_create->compile(*db);
+		q_create->exec();
 		
-		q_insert->bindDb(*db);
+		q_insert->compile(*db);
 
-		q_insert->bindColumnInteger(1, 1000);
-		q_insert->bindColumnInteger(2, 1995);
-		q_insert->bindColumnInteger(3, 8);
-		q_insert->bindColumnInteger(4, 18);
-		q_insert->bindColumnInteger(5, 9);
-		q_insert->bindColumnInteger(6, 45);
-		q_insert->bindColumnInteger(7, 36);
-		q_insert->bindColumnInteger(8, 2021);
-		q_insert->bindColumnInteger(9, 5);
-		q_insert->bindColumnInteger(10, 17);
-		q_insert->bindColumnInteger(11, 16);
-		q_insert->bindColumnInteger(12, 27);
-		q_insert->bindColumnInteger(13, 59);
+		std::size_t entry_count = 100;
+		for (int i = 0; i < entry_count; i++) {
 
-		q_insert->bindColumnText(14, "Some title.");
-		q_insert->bindColumnText(15, "Description! Description! Description!");
-		q_insert->bindColumnInteger(16, 0);
+			q_insert->bindColumnReal(1, TestUtil::rand_real(1000.0));
 
-		if (q_insert->exec() == nullptr) { TIMEY_CORE_ERROR("Something is wrong.\n"); };
+			for (int c = 0; c < 2; c++) {
+				q_insert->bindColumnInteger(c * 6 + 2, TestUtil::rand_num(2021) );
+				q_insert->bindColumnInteger(c * 6 + 3, TestUtil::rand_num(12, 1) );
+				q_insert->bindColumnInteger(c * 6 + 4, TestUtil::rand_num(31, 1) );
+				q_insert->bindColumnInteger(c * 6 + 5, TestUtil::rand_num(23) );
+				q_insert->bindColumnInteger(c * 6 + 6, TestUtil::rand_num(59) );
+				q_insert->bindColumnInteger(c * 6 + 7, TestUtil::rand_num(59) );
+			}
 
+			q_insert->bindColumnText(14, "Some title.");
+			q_insert->bindColumnText(15, "Description! Description! Description!");
+			q_insert->bindColumnInteger(16, TestUtil::rand_num(1024));
+
+			q_insert->exec();
+			q_insert->unbindAllColumns();
+			
+		}
+
+		q_select->compile(*db);
+		q_select->bindColumnInteger(1, TestUtil::rand_num(entry_count, 1));
+
+		Ref<SqliteTable> result;
+		if ( ( result = q_select->exec() ) == nullptr) { TIMEY_CORE_ERROR("Error in exeacution or empty table."); };
+
+		std::stringstream ss;
+
+		while (result->nextRow() == SQLITE_ROW) {
+
+			Ref<SqliteRow> row = result->getCurrentRow();
+			for (auto& e : *row) {
+				switch (e.type) {
+				case SQLType::integer:
+					ss << e.data.i << " | ";
+					break;
+				case SQLType::real:
+					ss << e.data.d << " | ";
+					break;
+				case SQLType::null:
+					ss << "NULL" << " | ";
+					break;
+				case SQLType::text:
+					ss << e.data.c << " | ";
+					break;
+				case SQLType::blob:
+					ss << "(Blob item)" << " | ";
+					break;
+				default:
+					break;
+				}
+			};
+
+			ss << " \n ";
+
+		}
+
+		TIMEY_TRACE(ss.str());
 
 	
 	};

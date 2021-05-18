@@ -922,7 +922,7 @@ namespace Timey {
 			if constexpr (isText) {
 
 				const char* src = Data;
-				data.c = (char*)malloc(sz);
+				data.c = new char[sz];
 				strcpy(data.c, src);
 				type = SQLType::text;
 				size = sz;
@@ -930,7 +930,7 @@ namespace Timey {
 			}
 			else if constexpr (isBlob) {
 				const void* src = Data;
-				data.v = (void*)malloc(sz);
+				data.v = new char[sz];
 				memcpy(data.v, src, sz);
 				type = SQLType::blob;
 				size = sz;
@@ -942,7 +942,7 @@ namespace Timey {
 		~SqliteEntry() {
 
 			if (type == SQLType::text || type == SQLType::blob) {
-				free((void*)data.c);
+				delete[] data.v;
 			};
 		};
 
@@ -1005,6 +1005,7 @@ namespace Timey {
 		int nextRow();
 		void resetRow();
 
+		inline bool isEmpty() { return !sqlite3_data_count(stmt);  };
 	private:
 		// This class can only be constructed by exec() in SqliteQuery. 
 		SqliteTable(sqlite3_stmt* stmt)
@@ -1040,8 +1041,8 @@ namespace Timey {
 		~SqliteQuery() {};
 
 		
-		int bindDb(SqliteDb& db); // Binding db will make the qurey status become prepared.
-		void unbindDb();
+		int compile(SqliteDb& db); // Binding db will make the qurey status become prepared.
+		void detach();
 
 		int bindColumnInteger(uint32_t idx, int value);
 		int bindColumnReal(uint32_t idx, double value);
@@ -1054,6 +1055,7 @@ namespace Timey {
 
 		inline bool isPrepared() { return prepared; };
 		inline SqliteDb* getDbHandle() { return bindedDb; };
+
 	private:
 		void bdErrorMsg(int errcode);
 	private:

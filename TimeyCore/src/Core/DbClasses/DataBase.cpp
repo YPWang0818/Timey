@@ -38,7 +38,7 @@ namespace Timey {
 		sqlite3_close(sqliteHandle);
 	}
 
-	int SqliteQuery::bindDb(SqliteDb& db)
+	int SqliteQuery::compile(SqliteDb& db)
 	{
 		int ok = sqlite3_prepare_v2(db.getRawDbHanle(), query.c_str(), -1, &stmt, nullptr);
 		if (ok != SQLITE_OK) {
@@ -53,7 +53,7 @@ namespace Timey {
 		return ok;
 	}
 
-	void SqliteQuery::unbindDb()
+	void SqliteQuery::detach()
 	{
 		sqlite3_finalize(stmt);
 		stmt = nullptr;
@@ -127,6 +127,8 @@ namespace Timey {
 
 
 		sqlite3_reset(stmt);
+		if (!sqlite3_column_count(stmt)) return nullptr;
+
 		Ref<SqliteTable> tb{ new SqliteTable(stmt) };
 
 		return tb;
@@ -162,7 +164,7 @@ namespace Timey {
 			case SQLType::text:
 				const char* cdata; std::size_t csz;
 				cdata = getEntryText(col, csz);
-				row->emplace_back(data, csz);
+				row->emplace_back(cdata, csz);
 				break;
 
 			default:
@@ -269,7 +271,7 @@ namespace Timey {
 
 	const char* SqliteTable::getEntryText(uint32_t col, std::size_t& sz)
 	{
-		sz = sqlite3_column_bytes(stmt, col);
+		sz = sqlite3_column_bytes(stmt, col) + 1;
 		return (const char*)(sqlite3_column_text(stmt, col));
 	};
 
