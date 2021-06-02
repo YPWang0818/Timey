@@ -121,7 +121,7 @@ namespace Timey {
 		
 		int ok = sqlite3_step(stmt);
 		if ((ok != SQLITE_ROW) && (ok != SQLITE_DONE)) {
-			TIMEY_CORE_ERROR("Execute query failure. Error code %d", ok);
+			TIMEY_CORE_ERROR("Execute query failure. ({0})", ok);
 			return nullptr;
 		};
 
@@ -136,7 +136,12 @@ namespace Timey {
 
 	Ref<SqliteRow> SqliteTable::getCurrentRow()
 	{
+
+		if (!currentRow) return nullptr;		
+		if (cache.find(currentRow) != cache.end()) { return cache[currentRow]; };
+
 		Ref<SqliteRow> row = CreateRef<SqliteRow>();
+		row->reserve(colCount);
 
 		for (int col = 0; col < colCount; col++) {
 
@@ -173,6 +178,8 @@ namespace Timey {
 			};
 		}
 
+		cache[currentRow] = row;
+
 		return row;
 	}
 
@@ -181,80 +188,40 @@ namespace Timey {
 		int ok = sqlite3_step(stmt);
 		currentRow++;
 
-		if (ok == SQLITE_ROW) {
-			return ok;
-		}
-		else if (ok == SQLITE_DONE) {
-			TIMEY_CORE_WARN("This is the last row.");
-			return ok;
+		if ((ok != SQLITE_ROW) && (ok != SQLITE_DONE))
+		{
+			TIMEY_CORE_ERROR("Execute query failure.({0})", ok);
 		};
-		TIMEY_CORE_ERROR("Execute query failure. Error code %d", ok);
-		return ok ;
-	}
+
+		return ok;
+	};
 
 	void SqliteTable::resetRow()
 	{
 		currentRow = 0;
 		sqlite3_reset(stmt);
 
-	}
+	};
 
 	Ref<SqliteColumn> SqliteTable::getColumn(std::size_t col)
 	{
-		sqlite3_reset(stmt); // reset to intitial row status. 
+		uint32_t currentRowSaved = currentRow;
+
+		resetRow(); // reset to intitial row status. 
 
 		Ref<SqliteColumn> column = CreateRef<SqliteColumn>();
-		int nativeType;
-		int ok;
+		TIMEY_CORE_ASSERT(col < colCount, "Column out of bound.");
 
-		do {
-			 ok = sqlite3_step(stmt);
-			 
-			 //This switch statment should have explicit control over the type of SqliteEntry it creates.
+		while (nextRow() == SQLITE_ROW) {
+			column->push_back((* (getCurrentRow()) )[col]);
+		}
 
-			 switch (SqliteTable::getTypeFromNativeType(sqlite3_column_type(stmt, col))) {
-			 case SQLType::integer:
-				 column->emplace_back(getEntryInt(col));
-				 break;
-
-			 case SQLType::blob:
-				 const void* data; std::size_t sz;
-				 data = getEntryBlob(col, sz);
-				 column->emplace_back(data, sz);
-				 break;
-
-			 case SQLType::null:;
-				 column->emplace_back();
-				 break;
-
-			 case SQLType::real:
-				 column->emplace_back(getEntryReal(col));
-				 break;
-
-			 case SQLType::text:
-				 const char* cdata; std::size_t csz;
-				 cdata = getEntryText(col, csz);
-				 column->emplace_back(data, csz);
-				 break;
-
-			 default:
-				 TIMEY_CORE_ERROR("Undefined SQLType.");
-				 break;
-			 };
-
-		} while (ok == SQLITE_ROW);
-
-		if (ok != SQLITE_DONE) {
-			TIMEY_CORE_ERROR("[Sqlite3] Executing Failure. {0} \n", ok);
-		};
-
-		sqlite3_reset(stmt); // reset to intitial row again. 
-
-		for (int col = 0; col < currentRow; col++)
+		for (int col = 0; col < currentRowSaved; col++)
 		{
 			sqlite3_step(stmt); // restore the row status. 		
 		};
 
+		currentRow = currentRowSaved;
 		return column;
 
 	}
@@ -293,6 +260,44 @@ namespace Timey {
 		default: return SQLType::undef;
 
 		};
+	}
+
+	std::string SqliteTable::toString()
+	{
+		std::stringstream ss;
+
+		while (nextRow() == SQLITE_ROW) {
+
+			Ref<SqliteRow> row = getCurrentRow();
+			for (auto& e : *row) {
+				switch (e.type) {
+				case SQLType::integer:
+					ss << e.data.i << " | ";
+					break;
+				case SQLType::real:
+					ss << e.data.d << " | ";
+					break;
+				case SQLType::null:
+					ss << "NULL" << " | ";
+					break;
+				case SQLType::text:
+					ss << e.data.c << " | ";
+					break;
+				case SQLType::blob:
+					ss << "(Blob item)" << " | ";
+					break;
+				default:
+					break;
+				}
+			};
+
+			ss << " \n ";
+
+		}
+
+		resetRow();
+
+		return ss.str();
 	};
 
 

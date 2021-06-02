@@ -826,9 +826,7 @@ namespace Timey {
 
 		};
 
-		
-
-
+	
 		static constexpr meta::string  createTableStmt = getCreateTableStmt<typename Comps::comps_tuple_>::tbStmt::stmt;
 		using rawTbStmt_ = typename getCreateTableStmt<typename Comps::comps_tuple_>::tbStmt;
 
@@ -860,9 +858,9 @@ namespace Timey {
 
 		union EntryData {
 			int64_t i; // SQLite Integer Type
-			double d; // SQLite Real Type
-			char* c; // SQLite Text Type
-			void* v; // SQLite BLOB Type
+			double d;  // SQLite Real Type
+			char* c;   // SQLite Text Type
+			void* v;   // SQLite BLOB Type
 		};
 
 		SQLType type = SQLType::undef;
@@ -881,8 +879,7 @@ namespace Timey {
 			static constexpr bool isInteger = std::numeric_limits<std::remove_cvref_t<T>>::is_integer;
 			static constexpr bool isReal = std::is_floating_point_v<std::remove_cvref_t<T>>;
 			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, std::string>;
-			// Constr with one parameter only accept (cvref removed) std::string.  
-
+		
 			static_assert(isInteger || isReal || isText);
 
 
@@ -903,7 +900,7 @@ namespace Timey {
 				strcpy(data.c, src);
 
 				type = SQLType::text;
-				size = Data.size();
+				size = Data.size() + 1;
 			}
 
 		};
@@ -911,9 +908,7 @@ namespace Timey {
 		template<typename T>
 		SqliteEntry(T Data, std::size_t sz) {
 
-			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, char const*> ||
-				std::is_same_v<std::remove_cvref_t<T>, char*>;
-
+			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, char const*> || std::is_same_v<std::remove_cvref_t<T>, char*>;
 			static constexpr bool isBlob = std::is_pointer_v<std::remove_cvref_t<T>> && (!isText);
 
 			static_assert(isText || isBlob);
@@ -939,6 +934,52 @@ namespace Timey {
 
 		};
 
+		SqliteEntry(const SqliteEntry& Other) 
+			:type{ Other.type }, size{ Other.size }, data{Other.data}
+		{
+			if ((type == SQLType::text) || (type == SQLType::blob)) {
+				data.v = malloc(Other.size);
+				memcpy(data.v, Other.data.v , size);
+			};
+		};
+
+
+		SqliteEntry(SqliteEntry&& Other) noexcept
+			:type{ Other.type }, size{ Other.size }, data{ Other.data }
+		{
+			if ((type == SQLType::text) || (type == SQLType::blob)) {
+				Other.data.v = nullptr;
+				Other.type = SQLType::undef;
+			};
+		};
+
+		SqliteEntry& operator = (const SqliteEntry& Other) 
+		{
+			type = Other.type;
+			size = Other.size;
+			data = Other.data;
+			if ((type == SQLType::text) || (type == SQLType::blob))
+			{
+					data.v = malloc(Other.size);
+					memcpy(data.v, Other.data.v, size);
+			};
+
+			return *this;
+		};
+
+		SqliteEntry& operator = (SqliteEntry&& Other) noexcept
+		{
+			type = Other.type;
+			size = Other.size;
+			data = Other.data;
+
+			Other.type = SQLType::undef;
+			Other.data.v = nullptr;
+
+			return *this;
+		};
+
+
 		~SqliteEntry() {
 
 			if (type == SQLType::text || type == SQLType::blob) {
@@ -946,17 +987,16 @@ namespace Timey {
 			};
 		};
 
+
+
+
 		operator int64_t () { return data.i; };
 		operator long int() { return data.i; };
 		operator int() { return static_cast<int>(data.i); };
-
-
 		operator double() { return data.d; };
 		operator float() { return static_cast<float>(data.d); };
-
 		operator char const* () { return static_cast<char const*>(data.c); };
 		operator char* () { return data.c; }
-
 		operator void* () { return data.v; };
 
 
@@ -966,32 +1006,7 @@ namespace Timey {
 	using SqliteRow = std::vector<SqliteEntry>;
 	using SqliteColumn = std::vector<SqliteEntry>;
 
-	/*
-	class SqliteColumn 
-	{
-	public:
-		SqliteColumn() {
-			m_wrapper = std::vector<SqliteEntry>();
-			m_type = SQLType::undef;
-				
-		};
-
-		SqliteColumn(std::vector<SqliteEntry> data)
-			:m_wrapper(data)
-		{
-			m_type = SQLType::undef;
-		};
-
-		inline void changeType(SQLType tp) { m_type = tp; };
-		inline SQLType isType() { return m_type; };
-
-	private:
-		std::vector<SqliteEntry> m_wrapper;
-		SQLType m_type;
-
-		friend class SqliteTable;
-	};
-	*/
+	using SqliteRowMap = std::unordered_map<uint32_t, Ref<SqliteRow>>;
 
 	class SqliteTable {
 
@@ -1004,8 +1019,14 @@ namespace Timey {
 		Ref<SqliteRow> getCurrentRow();
 		int nextRow();
 		void resetRow();
-
 		inline bool isEmpty() { return !sqlite3_data_count(stmt);  };
+		std::string toString();
+		Ref<SqliteColumn> getColumn(std::size_t col);
+		Ref<SqliteColumn> operator [] (std::size_t idx) { return getColumn(idx); };
+		SqliteRowMap cache;
+		
+		
+
 	private:
 		// This class can only be constructed by exec() in SqliteQuery. 
 		SqliteTable(sqlite3_stmt* stmt)
@@ -1014,15 +1035,13 @@ namespace Timey {
 			colCount = sqlite3_column_count(stmt);
 		};
 
-		Ref<SqliteColumn> getColumn(std::size_t col);
-		Ref<SqliteColumn> operator [] (std::size_t idx) { return getColumn(idx); };
-
 		int64_t getEntryInt(uint32_t col);
 		double getEntryReal(uint32_t col);
 		const char* getEntryText(uint32_t col, std::size_t& sz);
 		const void* getEntryBlob(uint32_t col, std::size_t& sz);
 
 		static SQLType getTypeFromNativeType(int type);
+
 
 	private:
 
