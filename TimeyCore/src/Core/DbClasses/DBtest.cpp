@@ -38,6 +38,11 @@ namespace Timey {
 
 	{
 
+		SessionID(int duration, uint64_t start, uint64_t end, char* title, const std::string& discription)
+			:duration{ duration }, startTime{ start }, endTime{ end }, title{ title }, description{discription}
+		{};
+
+
 		int duration;
 		uint64_t startTime;
 		uint64_t endTime;
@@ -71,6 +76,11 @@ namespace Timey {
 
 	static struct ProjectID {
 
+		ProjectID(float r, float g, float b, float a, char* title, const std::string& description) 
+			: colorR{ r }, colorG{ g }, colorB{ b }, colorA{ a }, title{ title }, description{description}
+		{};
+
+
 		float colorR;
 		float colorG;
 		float colorB;
@@ -78,7 +88,7 @@ namespace Timey {
 
 		char* title;
 		std::string description;
-
+	
 
 		using  p_colorR_ = ComponetInfo<"colorR", decltype(colorR), NotNull,
 			CheckExpr<"0 <= colorR AND 1 >= colorR">>;
@@ -108,14 +118,45 @@ namespace Timey {
 
 	};
 
-	static void init_database() {
-		SessionDb db("../databases/test.db");
-		ProjectDb pdb("../databases/test.db");
-	};
+
 
 	static void db_test() {
 
-		init_database();
+		const std::string dbpath = "../databases/test.db";
+
+		SessionDb db(dbpath);
+		ProjectDb pdb(dbpath);
+
+		const int sNum = 10;
+		SessionID* sessions[sNum];
+		for (int i = 0; i < sNum; i++) {
+			sessions[i] = new SessionID(
+				TestUtil::rand_num(1024),
+				TestUtil::rand_num(100000),
+				TestUtil::rand_num(100000),
+				"Some Title",
+				"Some Description."
+			);
+			db.InsertRow(*sessions[i]);
+		};
+
+		const int pNum = 10;
+		ProjectID* projects[pNum];
+		for (int i = 0; i < pNum; i++) {
+			projects[i] = new ProjectID(
+				TestUtil::rand_real(1.0f),
+				TestUtil::rand_real(1.0f),
+				TestUtil::rand_real(1.0f),
+				TestUtil::rand_real(1.0f),
+				"Some Title",
+				"Some Description."
+			);
+			pdb.InsertRow(*projects[i]);
+		};
+
+
+
+	
 		TIMEY_CORE_TRACE((const char*)SessionDb::createTableStmt);
 		TIMEY_CORE_TRACE((const char*)ProjectDb::createTableStmt);
 
@@ -258,8 +299,8 @@ namespace Timey {
 
 	void print_res() {
 
-		sqlite_db_test();
-		//db_test();
+		//sqlite_db_test();
+		db_test();
 
 
 	};

@@ -127,8 +127,6 @@ namespace Timey {
 
 
 		sqlite3_reset(stmt);
-		if (!sqlite3_column_count(stmt)) return nullptr;
-
 		Ref<SqliteTable> tb{ new SqliteTable(stmt) };
 
 		return tb;

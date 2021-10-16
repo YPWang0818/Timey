@@ -4,6 +4,287 @@
 
 namespace Timey {
 
+
+
+	enum SQLType {
+		integer = SQLITE_INTEGER,
+		real = SQLITE_FLOAT, // 64-bit.
+		text = SQLITE_TEXT,
+		blob = SQLITE_BLOB,
+		null = SQLITE_NULL,
+		undef = 0 // Undefined.
+
+	};
+
+	struct SqliteEntry {
+
+		union EntryData {
+			int64_t i; // SQLite Integer Type
+			double d;  // SQLite Real Type
+			char* c;   // SQLite Text Type
+			void* v;   // SQLite BLOB Type
+		};
+
+		SQLType type = SQLType::undef;
+		std::size_t size = 0;
+		EntryData data;
+
+		SqliteEntry() {
+			data.v = nullptr;
+			size = 0;
+			type = SQLType::null;
+		};
+
+		template <typename T>
+		SqliteEntry(T Data) {
+
+			static constexpr bool isInteger = std::numeric_limits<std::remove_cvref_t<T>>::is_integer;
+			static constexpr bool isReal = std::is_floating_point_v<std::remove_cvref_t<T>>;
+			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, std::string>;
+
+			static_assert(isInteger || isReal || isText);
+
+
+			if constexpr (isInteger) {
+				data.i = (int64_t)Data;
+				type = SQLType::integer;
+				size = sizeof(int64_t);
+			}
+			else if constexpr (isReal) {
+				data.d = (double)Data;
+				type = SQLType::real;
+				size = sizeof(double);
+			}
+			else if constexpr (isText) {
+
+				const char* src = Data.c_str();
+				data.c = (char*)malloc(Data.size() + 1);
+				strcpy(data.c, src);
+
+				type = SQLType::text;
+				size = Data.size() + 1;
+			}
+
+		};
+
+		template<typename T>
+		SqliteEntry(T Data, std::size_t sz) {
+
+			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, char const*> || std::is_same_v<std::remove_cvref_t<T>, char*>;
+			static constexpr bool isBlob = std::is_pointer_v<std::remove_cvref_t<T>> && (!isText);
+
+			static_assert(isText || isBlob);
+
+
+			if constexpr (isText) {
+
+				const char* src = Data;
+				data.c = new char[sz];
+				strcpy(data.c, src);
+				type = SQLType::text;
+				size = sz;
+
+			}
+			else if constexpr (isBlob) {
+				const void* src = Data;
+				data.v = new char[sz];
+				memcpy(data.v, src, sz);
+				type = SQLType::blob;
+				size = sz;
+
+			};
+
+		};
+
+		SqliteEntry(const SqliteEntry& Other)
+			:type{ Other.type }, size{ Other.size }, data{ Other.data }
+		{
+			if ((type == SQLType::text) || (type == SQLType::blob)) {
+				data.v = malloc(Other.size);
+				memcpy(data.v, Other.data.v, size);
+			};
+		};
+
+
+		SqliteEntry(SqliteEntry&& Other) noexcept
+			:type{ Other.type }, size{ Other.size }, data{ Other.data }
+		{
+			if ((type == SQLType::text) || (type == SQLType::blob)) {
+				Other.data.v = nullptr;
+				Other.type = SQLType::undef;
+			};
+		};
+
+		SqliteEntry& operator = (const SqliteEntry& Other)
+		{
+			type = Other.type;
+			size = Other.size;
+			data = Other.data;
+			if ((type == SQLType::text) || (type == SQLType::blob))
+			{
+				data.v = malloc(Other.size);
+				memcpy(data.v, Other.data.v, size);
+			};
+
+			return *this;
+		};
+
+		SqliteEntry& operator = (SqliteEntry&& Other) noexcept
+		{
+			type = Other.type;
+			size = Other.size;
+			data = Other.data;
+
+			Other.type = SQLType::undef;
+			Other.data.v = nullptr;
+
+			return *this;
+		};
+
+
+		~SqliteEntry() {
+
+			if (type == SQLType::text || type == SQLType::blob) {
+				delete[] data.v;
+			};
+		};
+
+
+
+
+		operator int64_t () { return data.i; };
+		operator long int() { return data.i; };
+		operator int() { return static_cast<int>(data.i); };
+		operator double() { return data.d; };
+		operator float() { return static_cast<float>(data.d); };
+		operator char const* () { return static_cast<char const*>(data.c); };
+		operator char* () { return data.c; }
+		operator void* () { return data.v; };
+
+
+	};
+
+	class SQLiteTable;
+	class SqliteDb;
+	using SqliteRow = std::vector<SqliteEntry>;
+	using SqliteColumn = std::vector<SqliteEntry>;
+
+	using SqliteRowMap = std::unordered_map<uint32_t, Ref<SqliteRow>>;
+
+	class SqliteTable {
+
+		friend class SqliteQuery;
+	public:
+
+		inline int getColumnCount() const { return colCount; };
+		inline uint32_t getCurrentRow() const { return currentRow; };
+
+		Ref<SqliteRow> getCurrentRow();
+		int nextRow();
+		void resetRow();
+		inline bool isEmpty() { return is_empty; };
+		std::string toString();
+		Ref<SqliteColumn> getColumn(std::size_t col);
+		Ref<SqliteColumn> operator [] (std::size_t idx) { return getColumn(idx); };
+
+
+
+	private:
+		// This class can only be constructed by exec() in SqliteQuery. 
+		SqliteTable(sqlite3_stmt* stmt)
+			:stmt(stmt) {
+			currentRow = 0;
+			colCount = sqlite3_column_count(stmt);
+			int ok = sqlite3_step(stmt);
+			is_empty = ok == SQLITE_DONE ? true : false;
+			sqlite3_reset(stmt);
+
+		};
+
+		int64_t getEntryInt(uint32_t col);
+		double getEntryReal(uint32_t col);
+		const char* getEntryText(uint32_t col, std::size_t& sz);
+		const void* getEntryBlob(uint32_t col, std::size_t& sz);
+
+		static SQLType getTypeFromNativeType(int type);
+		SqliteRowMap cache;
+		bool is_empty;
+
+
+	private:
+
+		sqlite3_stmt* stmt;
+		uint32_t currentRow = 0;
+		uint32_t colCount;
+	};
+
+
+
+
+	class SqliteQuery
+	{
+		friend class SqliteTable;
+	public:
+		SqliteQuery(const std::string& queryStr)
+			:query(queryStr) {};
+
+		~SqliteQuery() {};
+
+
+		int compile(SqliteDb& db); // Binding db will make the qurey status become prepared.
+		void detach();
+
+		int bindColumnInteger(uint32_t idx, int value);
+		int bindColumnReal(uint32_t idx, double value);
+		int bindColumnText(uint32_t idx, const char* value);
+		int bindColumnNull(uint32_t idx);
+		int bindColumnBlob(uint32_t idx, const void* data, uint32_t size);
+		int unbindAllColumns();
+
+		Ref<SqliteTable> exec();
+
+		inline bool isPrepared() { return prepared; };
+		inline SqliteDb* getDbHandle() { return bindedDb; };
+
+	private:
+		void bdErrorMsg(int errcode);
+	private:
+		bool prepared = false;
+
+		SqliteDb* bindedDb = nullptr;
+		sqlite3_stmt* stmt = nullptr;
+		std::string query;
+		uint32_t rowCount = 0;
+
+	};
+
+	class SqliteDb {
+
+	public:
+		SqliteDb(const std::string& filePath)
+			:dbPath(filePath)
+		{
+			initDb(filePath);
+		};
+
+		~SqliteDb() {
+			closeDb();
+		};
+
+		inline sqlite3* getRawDbHanle() { return sqliteHandle; };
+
+	private:
+		void initDb(const std::string& filePath);
+		void closeDb();
+
+		sqlite3* sqliteHandle;
+		std::string dbPath;
+	};
+
+
+
+
+
 	//	Some compile time utilities for working with strings and passing strings as template parameters.
 	//	Modified from the source code of Conor Williams.
 
@@ -355,7 +636,7 @@ namespace Timey {
 	
 	};
 
-
+	/*
 	template<typename ... ColStmts>
 	struct ColNames {
 
@@ -380,7 +661,7 @@ namespace Timey {
 
 
 	};
-
+	*/
 
 	template<typename Cols>
 	struct PriKey {
@@ -534,6 +815,23 @@ namespace Timey {
 			static constexpr uint32_t count = 1;
 		}; // No column is not handled. 
 
+
+
+		template<std::size_t idx, typename fst, typename ... rest>
+		struct catColumnsFrom : catColumnsFrom<idx - 1, rest ...> {
+			using colstuple_t = std::tuple<rest...>;
+		};
+		
+		template<typename ... rest>
+		struct catColumnsFrom<0, rest...> {
+			using cols = catColumns<rest...>;
+			static constexpr meta::string value = cols::value;
+			static constexpr meta::string colNames = cols::colNames;
+			static constexpr uint32_t count = cols::count;
+		};
+
+		
+
 		template<typename T>
 		struct getFgnKey {
 			static constexpr meta::string value = delimiter + T::stmt;
@@ -559,12 +857,14 @@ namespace Timey {
 	public:
 
 		static constexpr meta::string name = meta::unwrap_v<tbName>;
-		static constexpr meta::string stmt = header + catColumns<Cols...>::value + getPriKey<PriKey>::value + getFgnKey<FgnKeys>::value + trailer;
-		static constexpr meta::string allKeysNames_wp = meta::stom_v<"( "> +catColumns<Cols...>::colNames + meta::stom_v<") ">;
+		static constexpr meta::string stmt = header + catColumns<Cols...>::value + getPriKey<PriKey>::value +
+			getFgnKey<FgnKeys>::value + trailer;
 
-		using allCols_t = typename ColNames<Cols...>;
+		// We Assume that the first column of the table is Id. 
+		static constexpr meta::string keysNameNoId = meta::stom_v<"( "> + catColumnsFrom<1, Cols...>::colNames + meta::stom_v<") ">;
+		using colsTupleNoId_t = typename catColumnsFrom<1, Cols...>::colstuple_t;
+		using colCountsNoId_t = std::integral_constant<uint32_t, catColumnsFrom<1, Cols...>::count>;
 
-		using colCounts_t = std::integral_constant<uint32_t, catColumns<Cols...>::count>;
 		using primaryKey = PriKey; // Dosen't consider the case when primary keys are in the column constraint. 
 		using foreignKeys = FgnKeys;
 		using name_t = meta::unwrap_t<tbName>;
@@ -579,7 +879,7 @@ namespace Timey {
 
 		template<typename T>
 		struct getColNameList {
-			static constexpr meta::string nameList = T::allKeysNames_wp;
+			static constexpr meta::string nameList = T::keysNameNoId;
 		};
 
 
@@ -588,7 +888,8 @@ namespace Timey {
 
 		template<uint32_t n>
 		struct getParams<std::integral_constant<uint32_t, n>>{
-			static constexpr meta::string params = getParams<std::integral_constant<uint32_t, n - 1>>::params + meta::stom_v<", ?"> + meta::itom_v<n>;
+			static constexpr meta::string params = getParams<std::integral_constant<uint32_t, n - 1>>::params + 
+				meta::stom_v<", ?"> + meta::itom_v<n>;
 		};
 
 		template<>
@@ -598,7 +899,8 @@ namespace Timey {
 
 	public:
 
-		static constexpr meta::string stmt = header + Tb::name + getColNameList<Tb>::nameList + meta::stom_v<" VALUES( ">  + getParams<typename Tb::colCounts_t>::params + trialer;
+		static constexpr meta::string stmt = header + Tb::name + getColNameList<Tb>::nameList + meta::stom_v<" VALUES( ">  
+			+ getParams<typename Tb::colCountsNoId_t>::params + trialer;
 
 
 	};
@@ -638,30 +940,23 @@ namespace Timey {
 		static constexpr meta::string trailer = meta::stom_v<" WHERE id == ?1;">;
 		static constexpr meta::string delimiter = meta::stom_v<",\n ">;
 	
-		template<typename T>
-		struct getSetParams {
+		template<std::size_t acc, typename T>
+		struct setParams;
 
-			template<typename idx, typename U>
-			struct loopCols;
+		template<std::size_t acc, typename fst, typename ... rst>
+		struct setParams<acc, std::tuple<fst, rst...>> {
+			static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> +meta::itom_v<acc> +
+				delimiter + setParams<acc + 1, std::tuple<rst...>>::value;
+		};
 
-			template<uint32_t n, typename fst, typename ... rst>
-			struct loopCols<std::integral_constant<uint32_t, n>, ColNames<fst, rst...>> {
-				static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> + meta::itom_v<n + 1> + 
-					delimiter + loopCols<std::integral_constant<uint32_t, n + 1>, ColNames<rst...>>::value;
-			};
-
-			template<uint32_t n, typename fst>
-			struct loopCols<std::integral_constant<uint32_t, n>, ColNames<fst>> {
-				static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> + meta::itom_v<n + 1>;
-			};
-
-			static constexpr meta::string setParams = loopCols<std::integral_constant<uint32_t, 1>, T::allCols_t>::value;
-		
+		template<std::size_t acc, typename fst>
+		struct setParams<acc, std::tuple<fst>> {
+			static constexpr meta::string value = fst::name + meta::stom_v<" = ?"> +meta::itom_v<acc>;
 		};
 
 
 	public:
-		static constexpr meta::string stmt = header + Tb::name + meta::stom_v<" \n SET "> + getSetParams<Tb>::setParams
+		static constexpr meta::string stmt = header + Tb::name + meta::stom_v<" \n SET "> + setParams<2, Tb::colsTupleNoId_t>::value
 			+ meta::stom_v<"\n"> + trailer;
 
 	
@@ -745,16 +1040,17 @@ namespace Timey {
 		inline auto* getData() {
 			return std::get<findIdx<name>()>(m_components).Data;
 		}
+
+		inline auto* getTuple() { return &m_components; };
 		
-
-
+		constexpr std::size_t getSize() {
+			return std::tuple_size<compsTuple_t>{};
+		}
 
 	private:
 
 		template<meta::wrap compName>
 		struct getIndex {
-
-
 
 			template<std::size_t n, typename ... T>
 			struct IdxLoop;
@@ -786,7 +1082,6 @@ namespace Timey {
 	
 
 
-	class SqliteDb;
 
 	template<strP dbName, typename Comps>
 	class DataBase {
@@ -795,11 +1090,46 @@ namespace Timey {
 
 
 		DataBase(const std::string& filepath) 
+			:sqliteCoreDb{ CreateScope<SqliteDb>(filepath) }
 		{
-			sqliteCoreDb = std::make_unique<SqliteDb>(filepath);
+
+				
+				q_createTable = CreateScope<SqliteQuery>(std::string{ createTableStmt });
+
+				SqliteQuery q_verifyTable{ std::string{verifyTableStmt} };
+				q_verifyTable.compile(*sqliteCoreDb);
+				Ref<SqliteTable> verifyResult = q_verifyTable.exec();
+
+				// Assumes that the schema is correct if the table name exists. 
+				if (verifyResult->isEmpty()) {
+					q_createTable->compile(*sqliteCoreDb);
+					q_createTable->exec();
+				};
+
+				q_insert = CreateScope<SqliteQuery>(std::string{ insertStmt });
+				q_insert->compile(*sqliteCoreDb);
+
+				q_delete = CreateScope<SqliteQuery>(std::string{ deleteStmt });
+				q_delete->compile(*sqliteCoreDb);
+
+				q_update = CreateScope<SqliteQuery>(std::string{ updateStmt });
+				q_update->compile(*sqliteCoreDb);
+
+				q_select = CreateScope<SqliteQuery>(std::string{ selectStmt });
+				q_select->compile(*sqliteCoreDb);
+		
+		}
+
+
+
+		int InsertRow(const Comps& row) {
+			auto* compTuple = row.comp_.getTuple();
+
+			return 0;
+		
 		};
 
-		int InsertRow(const Comps& row) { return 0; };
+
 		int DeleteRow(uint32_t Id) { return 0; };
 		Ref<Comps> FetchRow(uint32_t Id) { return nullptr; };
 		RefList<Comps> FindRows(const Comps& rowdata) { return nullptr; };
@@ -835,284 +1165,51 @@ namespace Timey {
 		static constexpr meta::string  updateStmt = UpdateStmt<rawTbStmt_>::stmt;
 		static constexpr meta::string  selectStmt = SelectStmt<rawTbStmt_>::stmt;
 
+
 	private:
 
-		std::unique_ptr<SqliteDb> sqliteCoreDb;
+		template<int... Is> struct seq {};
+		template<int N, int... Is> struct gen_seq : gen_seq<N - 1, N - 1, Is...> {};
+		template<int... Is> struct gen_seq<0, Is...> : seq<Is...> {};
+
+		template<int N, class T, class F>
+		void apply_one(T& p, F func)
+		{
+			func(std::get<N>(p));
+		}
+
+		template<class T, class F, int... Is>
+		void apply(T& p, int index, F func, seq<Is...>)
+		{
+			using FT = void(T&, F);
+			static constexpr FT* arr[] = { &apply_one<Is, T, F>... };
+			arr[index](p, func);
+		}
+
+		template<class T, class F>
+		void apply(T& p, int index, F func)
+		{
+			apply(p, index, func, gen_seq<std::tuple_size<T>::value>{});
+		}
+
+	private:
 	
+		static constexpr meta::string verifyTableStmt = meta::stom_v<"SELECT name FROM sqlite_master WHERE type = 'table' AND name = '"> +
+			rawTbStmt_::name + meta::stom_v<"';" > ;
+
+
+		Scope<SqliteDb> sqliteCoreDb;
+		Scope<SqliteQuery> q_createTable;
+		Scope<SqliteQuery> q_insert;
+		Scope<SqliteQuery> q_delete;
+		Scope<SqliteQuery> q_update;
+		Scope<SqliteQuery> q_select;
+
+		
 
 		
 	};
 
-	enum SQLType {
-		integer = SQLITE_INTEGER,
-		real = SQLITE_FLOAT, // 64-bit.
-		text = SQLITE_TEXT,
-		blob = SQLITE_BLOB,
-		null = SQLITE_NULL,
-		undef = 0 // Undefined.
-
-	};
-
-
-	struct SqliteEntry {
-
-		union EntryData {
-			int64_t i; // SQLite Integer Type
-			double d;  // SQLite Real Type
-			char* c;   // SQLite Text Type
-			void* v;   // SQLite BLOB Type
-		};
-
-		SQLType type = SQLType::undef;
-		std::size_t size = 0;
-		EntryData data;
-
-		SqliteEntry() {
-			data.v = nullptr;
-			size = 0;
-			type = SQLType::null;
-		};
-
-		template <typename T>
-		SqliteEntry(T Data) {
-
-			static constexpr bool isInteger = std::numeric_limits<std::remove_cvref_t<T>>::is_integer;
-			static constexpr bool isReal = std::is_floating_point_v<std::remove_cvref_t<T>>;
-			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, std::string>;
-		
-			static_assert(isInteger || isReal || isText);
-
-
-			if constexpr (isInteger) {
-				data.i = (int64_t)Data;
-				type = SQLType::integer;
-				size = sizeof(int64_t);
-			}
-			else if constexpr (isReal) {
-				data.d = (double)Data;
-				type = SQLType::real;
-				size = sizeof(double);
-			}
-			else if constexpr (isText) {
-
-				const char* src = Data.c_str();
-				data.c = (char*)malloc(Data.size() + 1);
-				strcpy(data.c, src);
-
-				type = SQLType::text;
-				size = Data.size() + 1;
-			}
-
-		};
-
-		template<typename T>
-		SqliteEntry(T Data, std::size_t sz) {
-
-			static constexpr bool isText = std::is_same_v<std::remove_cvref_t<T>, char const*> || std::is_same_v<std::remove_cvref_t<T>, char*>;
-			static constexpr bool isBlob = std::is_pointer_v<std::remove_cvref_t<T>> && (!isText);
-
-			static_assert(isText || isBlob);
-
-
-			if constexpr (isText) {
-
-				const char* src = Data;
-				data.c = new char[sz];
-				strcpy(data.c, src);
-				type = SQLType::text;
-				size = sz;
-
-			}
-			else if constexpr (isBlob) {
-				const void* src = Data;
-				data.v = new char[sz];
-				memcpy(data.v, src, sz);
-				type = SQLType::blob;
-				size = sz;
-
-			};
-
-		};
-
-		SqliteEntry(const SqliteEntry& Other) 
-			:type{ Other.type }, size{ Other.size }, data{Other.data}
-		{
-			if ((type == SQLType::text) || (type == SQLType::blob)) {
-				data.v = malloc(Other.size);
-				memcpy(data.v, Other.data.v , size);
-			};
-		};
-
-
-		SqliteEntry(SqliteEntry&& Other) noexcept
-			:type{ Other.type }, size{ Other.size }, data{ Other.data }
-		{
-			if ((type == SQLType::text) || (type == SQLType::blob)) {
-				Other.data.v = nullptr;
-				Other.type = SQLType::undef;
-			};
-		};
-
-		SqliteEntry& operator = (const SqliteEntry& Other) 
-		{
-			type = Other.type;
-			size = Other.size;
-			data = Other.data;
-			if ((type == SQLType::text) || (type == SQLType::blob))
-			{
-					data.v = malloc(Other.size);
-					memcpy(data.v, Other.data.v, size);
-			};
-
-			return *this;
-		};
-
-		SqliteEntry& operator = (SqliteEntry&& Other) noexcept
-		{
-			type = Other.type;
-			size = Other.size;
-			data = Other.data;
-
-			Other.type = SQLType::undef;
-			Other.data.v = nullptr;
-
-			return *this;
-		};
-
-
-		~SqliteEntry() {
-
-			if (type == SQLType::text || type == SQLType::blob) {
-				delete[] data.v;
-			};
-		};
-
-
-
-
-		operator int64_t () { return data.i; };
-		operator long int() { return data.i; };
-		operator int() { return static_cast<int>(data.i); };
-		operator double() { return data.d; };
-		operator float() { return static_cast<float>(data.d); };
-		operator char const* () { return static_cast<char const*>(data.c); };
-		operator char* () { return data.c; }
-		operator void* () { return data.v; };
-
-
-	};
-
-	class SQLiteTable;
-	using SqliteRow = std::vector<SqliteEntry>;
-	using SqliteColumn = std::vector<SqliteEntry>;
-
-	using SqliteRowMap = std::unordered_map<uint32_t, Ref<SqliteRow>>;
-
-	class SqliteTable {
-
-		friend class SqliteQuery;
-	public:
-
-		inline int getColumnCount() const { return colCount; };
-		inline uint32_t getCurrentRow() const { return currentRow; };
-
-		Ref<SqliteRow> getCurrentRow();
-		int nextRow();
-		void resetRow();
-		inline bool isEmpty() { return !sqlite3_data_count(stmt);  };
-		std::string toString();
-		Ref<SqliteColumn> getColumn(std::size_t col);
-		Ref<SqliteColumn> operator [] (std::size_t idx) { return getColumn(idx); };
-		SqliteRowMap cache;
-		
-		
-
-	private:
-		// This class can only be constructed by exec() in SqliteQuery. 
-		SqliteTable(sqlite3_stmt* stmt)
-			:stmt(stmt) {
-			currentRow = 0;
-			colCount = sqlite3_column_count(stmt);
-		};
-
-		int64_t getEntryInt(uint32_t col);
-		double getEntryReal(uint32_t col);
-		const char* getEntryText(uint32_t col, std::size_t& sz);
-		const void* getEntryBlob(uint32_t col, std::size_t& sz);
-
-		static SQLType getTypeFromNativeType(int type);
-
-
-	private:
-
-		sqlite3_stmt* stmt;
-		uint32_t currentRow = 0;
-	    uint32_t colCount;
-	};
-
-	class SqliteQuery 
-	{
-		friend class SqliteTable;
-	public:
-		SqliteQuery(const std::string& queryStr)
-			:query(queryStr) {};
-
-		~SqliteQuery() {};
-
-		
-		int compile(SqliteDb& db); // Binding db will make the qurey status become prepared.
-		void detach();
-
-		int bindColumnInteger(uint32_t idx, int value);
-		int bindColumnReal(uint32_t idx, double value);
-		int bindColumnText(uint32_t idx, const char* value);
-		int bindColumnNull(uint32_t idx);
-		int bindColumnBlob(uint32_t idx, const void* data, uint32_t size);
-		int unbindAllColumns();
-
-		Ref<SqliteTable> exec();
-
-		inline bool isPrepared() { return prepared; };
-		inline SqliteDb* getDbHandle() { return bindedDb; };
-
-	private:
-		void bdErrorMsg(int errcode);
-	private:
-		bool prepared = false;
-
-		SqliteDb* bindedDb = nullptr;
-		sqlite3_stmt* stmt = nullptr;
-		std::string query;
-		uint32_t rowCount = 0;
-
-	};
-
-	class SqliteDb {
-
-	public:
-		SqliteDb(const std::string& filePath)
-			:dbPath(filePath)
-		{
-			initDb(filePath);
-		};
-
-		~SqliteDb() {
-			closeDb();
-		};
-
-		inline sqlite3* getRawDbHanle() { return sqliteHandle; };
-
-	private:
-		void initDb(const std::string& filePath);
-		void closeDb();
-
-		sqlite3* sqliteHandle;
-		std::string dbPath;
-	};
-
-
-	
 
 	void print_res();
-
 };
