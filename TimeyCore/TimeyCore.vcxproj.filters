@@ -9,31 +9,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\DbClasses\CoreDataBase.h">
+    <ClInclude Include="src\Core\DbClasses\DataBase.h">
       <Filter>Core\DbClasses</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\GroupDataBase.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\ProjectDataBase.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\ProjectGroupDataBase.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\Query.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\QueryResult.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\SessionDataBase.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\TagDataBase.h">
-      <Filter>Core\DbClasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DbClasses\TagGroupDataBase.h">
+    <ClInclude Include="src\Core\DbClasses\SQL_queries.h">
       <Filter>Core\DbClasses</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\FileManager.h">
@@ -45,36 +24,23 @@
     <ClInclude Include="src\Core\Object.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\TimeyID.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\TimeyTime.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Utilty.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
-    <ClInclude Include="src\Core\TimeyID.h" />
-    <ClInclude Include="src\Core\TimeyTime.h" />
-    <ClInclude Include="src\Core\DbClasses\DataBase.h" />
-    <ClInclude Include="src\Core\Utilty.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp">
+    <ClCompile Include="src\Core\DbClasses\DBtest.cpp">
       <Filter>Core\DbClasses</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\ProjectDataBase.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\ProjectGroupDataBase.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\Query.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\QueryResult.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\SessionDataBase.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\TagDataBase.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\DbClasses\TagGroupDataBase.cpp">
+    <ClCompile Include="src\Core\DbClasses\DataBase.cpp">
       <Filter>Core\DbClasses</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\FileManager.cpp">
@@ -83,10 +49,12 @@
     <ClCompile Include="src\Core\Log.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\TimeyID.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\TimeyTime.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\timey_pch.cpp" />
-    <ClCompile Include="src\Core\TimeyID.cpp" />
-    <ClCompile Include="src\Core\TimeyTime.cpp" />
-    <ClCompile Include="src\Core\DbClasses\DBtest.cpp" />
-    <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
   </ItemGroup>
 </Project>

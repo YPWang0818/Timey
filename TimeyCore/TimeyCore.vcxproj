@@ -81,9 +81,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessToFile>false</PreprocessToFile>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,40 +132,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\DbClasses\CoreDataBase.h" />
     <ClInclude Include="src\Core\DbClasses\DataBase.h" />
-    <ClInclude Include="src\Core\DbClasses\GroupDataBase.h" />
-    <ClInclude Include="src\Core\DbClasses\ProjectDataBase.h" />
-    <ClInclude Include="src\Core\DbClasses\ProjectGroupDataBase.h" />
-    <ClInclude Include="src\Core\DbClasses\Query.h" />
-    <ClInclude Include="src\Core\DbClasses\QueryResult.h" />
-    <ClInclude Include="src\Core\DbClasses\SessionDataBase.h" />
-    <ClInclude Include="src\Core\DbClasses\TagDataBase.h" />
-    <ClInclude Include="src\Core\DbClasses\TagGroupDataBase.h" />
+    <ClInclude Include="src\Core\DbClasses\SQL_queries.h" />
     <ClInclude Include="src\Core\FileManager.h" />
     <ClInclude Include="src\Core\Log.h" />
     <ClInclude Include="src\Core\Object.h" />
-    <ClInclude Include="src\Core\TimeyTime.h" />
     <ClInclude Include="src\Core\TimeyID.h" />
+    <ClInclude Include="src\Core\TimeyTime.h" />
     <ClInclude Include="src\Core\Utilty.h" />
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Core\DbClasses\CoreDataBase.cpp" />
-    <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
     <ClCompile Include="src\Core\DbClasses\DBtest.cpp" />
-    <ClCompile Include="src\Core\DbClasses\ProjectDataBase.cpp" />
-    <ClCompile Include="src\Core\DbClasses\ProjectGroupDataBase.cpp" />
-    <ClCompile Include="src\Core\DbClasses\Query.cpp" />
-    <ClCompile Include="src\Core\DbClasses\QueryResult.cpp" />
-    <ClCompile Include="src\Core\DbClasses\SessionDataBase.cpp" />
-    <ClCompile Include="src\Core\DbClasses\TagDataBase.cpp" />
-    <ClCompile Include="src\Core\DbClasses\TagGroupDataBase.cpp" />
+    <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
     <ClCompile Include="src\Core\FileManager.cpp" />
     <ClCompile Include="src\Core\Log.cpp" />
-    <ClCompile Include="src\Core\TimeyTime.cpp" />
     <ClCompile Include="src\Core\TimeyID.cpp" />
+    <ClCompile Include="src\Core\TimeyTime.cpp" />
     <ClCompile Include="src\timey_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

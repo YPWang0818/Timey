@@ -84,8 +84,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,10 +144,10 @@
     <ClInclude Include="src\Events\TimeyEvents.h" />
     <ClInclude Include="src\Events\WindowEvents.h" />
     <ClInclude Include="src\Platform\Win32\Win32Windows.h" />
-    <ClInclude Include="src\timey_pch.h" />
     <ClInclude Include="src\UI\ImguiBackend.h" />
     <ClInclude Include="src\UI\UILayer.h" />
     <ClInclude Include="src\UI\UIWindows.h" />
+    <ClInclude Include="src\timey_pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppCore\Application.cpp" />
@@ -156,13 +155,13 @@
     <ClCompile Include="src\AppCore\main.cpp" />
     <ClCompile Include="src\Platform\Win32\Win32Window.cpp" />
     <ClCompile Include="src\Platform\Win32\timey_pch.cpp" />
+    <ClCompile Include="src\UI\ImguiBackend.cpp" />
+    <ClCompile Include="src\UI\UILayer.cpp" />
+    <ClCompile Include="src\UI\UIWindows.cpp" />
     <ClCompile Include="src\timey_pch.cpp">
       <ObjectFileName>$(IntDir)\timey_pch1.obj</ObjectFileName>
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\UI\ImguiBackend.cpp" />
-    <ClCompile Include="src\UI\UILayer.cpp" />
-    <ClCompile Include="src\UI\UIWindows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TimeyCore\TimeyCore.vcxproj">

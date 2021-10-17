@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include"DataBase.h"
-
+#include "SQL_queries.h"
 
 
 namespace Timey {
@@ -38,7 +38,7 @@ namespace Timey {
 		sqlite3_close(sqliteHandle);
 	}
 
-	int SqliteQuery::compile(SqliteDb& db)
+	int SqliteQuery::compile(const SqliteDb& db)
 	{
 		int ok = sqlite3_prepare_v2(db.getRawDbHanle(), query.c_str(), -1, &stmt, nullptr);
 		if (ok != SQLITE_OK) {
@@ -310,5 +310,19 @@ namespace Timey {
 	}
 
 
+	template <typename DataType>
+	void DataBase<DataType>::installQuery(const std::string& name, const SqliteQuery& query)
+	{
+		// TODO: handle collisions.
+		queryCache[name] = query;
+	}
+
+	template <typename DataType>
+	void DataBase<DataType>::execAllQuery()
+	{
+		for (auto q : queryCache) {
+			q.second.compile(*this);
+		}
+	}
 
 }

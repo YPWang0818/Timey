@@ -1,9 +1,0 @@
-
-
---  add new tag
-
-INSERT INTO tags(color_r, color_g, color_b, color_a, title)
-VALUES(1.0, 0.3, 0.7, 0.4, 'Timey');
-
-
-
