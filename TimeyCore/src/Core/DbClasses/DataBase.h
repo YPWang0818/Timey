@@ -304,7 +304,6 @@ namespace Timey {
 	{
 
 	public:
-
 		DataBase(const std::string& filename)
 			: SqliteDb{ filename }
 		{
@@ -315,6 +314,7 @@ namespace Timey {
 		virtual int updateData(const DataType& data) = 0;
 		virtual int deleteData(uint32_t id) = 0;
 		virtual Ref<DataType> fetchData(uint32_t id) = 0;
+
 
 
 		inline Ref<SqliteQuery> getQuery(const std::string& name) { return CreateRef<SqliteQuery>(queryCache[name]); };

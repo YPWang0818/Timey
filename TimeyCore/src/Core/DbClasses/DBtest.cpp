@@ -5,6 +5,7 @@
 
 namespace Timey {
 
+
 	static const std::string sqlite_db_test_create_table_str = R"(
 	-- create session table
 	CREATE TABLE sessions (
@@ -165,6 +166,7 @@ namespace Timey {
 
 	};
 
+
 	static void project_db_test() {
 
 
@@ -198,5 +200,6 @@ namespace Timey {
 
 	void print_res() {
 		project_db_test();
+
 	};
  }
