@@ -8,9 +8,11 @@
 
 // Can only be used in the DataBase<DataType> class
 #define TIMEY_INSTALL_QUERY(queryName) do{ \
-	installQuery(#queryName, SqliteQuery{#queryName});\
+	installQuery(#queryName, SqliteQuery{queryName});\
 	}while(0);\
-	
+
+#define TIMEY_TO_STR(str) #str
+
 
 #endif
 namespace Timey {
@@ -24,7 +26,9 @@ namespace Timey {
 	///															///
 	/// ********************************************************///
 
-	static const std::string create_projectstb_query
+
+	static const std::string queryCreateProjectsTable
+
 		= R"(
 		--project table
 
@@ -44,18 +48,33 @@ namespace Timey {
     			ON UPDATE CASCADE );
 		)";
 
-	static const std::string add_project_query
+
+	static const std::string queryAddProject
 		= R"(INSERT INTO projects (color_r, color_g, color_b, color_a, title, discription, projects_group_id) 
 			VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7); )";
 
-	static const std::string fetch_project_query
+	static const std::string queryFetchProject
 		= R"( SELECT * FROM projects WHERE project_id == ?1; )";
 
-	static const std::string delete_project_query = R"(
+	static const std::string queryDeleteProject 
+		= R"(
 		DELETE FROM projects WHERE project_id == ?1 ;
 		)";
 
-	static const std::string update_projects_group_query = R"(
+	static const std::string queryUpdateProject
+		= R"(
+			UPDATE projects
+			SET  color_r = ?1,
+				 color_g = ?2,
+				 color_b = ?3,
+				 color_a = ?4,
+				 title = ?5, 
+				 discription = ?6
+			WHERE  project_id = ?7;
+		)";
+
+	static const std::string queryUpdateProjectGroup
+		= R"(
 			UPDATE projects
 			SET  projects_group_id = ?1
 			WHERE  project_id = ?2;

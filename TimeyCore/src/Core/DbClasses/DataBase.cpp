@@ -91,6 +91,11 @@ namespace Timey {
 		return ok;
 	}
 
+	int SqliteQuery::bindColumnText(uint32_t idx, const std::string& value)
+	{
+		return bindColumnText(idx, value.c_str());
+	}
+
 	int SqliteQuery::bindColumnNull(uint32_t idx)
 	{
 		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
@@ -111,6 +116,7 @@ namespace Timey {
 
 	int SqliteQuery::unbindAllColumns()
 	{
+		sqlite3_reset(stmt);
 		return sqlite3_clear_bindings(stmt);
 	
 	}
@@ -119,23 +125,15 @@ namespace Timey {
 	{
 		TIMEY_CORE_ASSERT(( bindedDb != nullptr), "No database binded.");
 		
-		int ok = sqlite3_step(stmt);
-		if ((ok != SQLITE_ROW) && (ok != SQLITE_DONE)) {
-			TIMEY_CORE_ERROR("Execute query failure. ({0})", ok);
-			return nullptr;
-		};
-
-
-		sqlite3_reset(stmt);
 		Ref<SqliteTable> tb{ new SqliteTable(stmt) };
-
+	
 		return tb;
 	}
 
 	Ref<SqliteRow> SqliteTable::getCurrentRow()
 	{
 
-		if (!currentRow) return nullptr;		
+		//if (!currentRow) return nullptr;		
 		if (cache.find(currentRow) != cache.end()) { return cache[currentRow]; };
 
 		Ref<SqliteRow> row = CreateRef<SqliteRow>();
@@ -315,14 +313,97 @@ namespace Timey {
 	{
 		// TODO: handle collisions.
 		queryCache[name] = query;
+		queryCache[name].compile(*this);
 	}
 
-	template <typename DataType>
-	void DataBase<DataType>::execAllQuery()
+	template<typename DataType>
+	Ref<SqliteTable> DataBase<DataType>::execQuery(const std::string& name)
 	{
-		for (auto q : queryCache) {
-			q.second.compile(*this);
-		}
+		return queryCache[name].exec();
+	}
+
+
+	int ProjectDb::insertData(const Project& data)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryAddProject));
+		for (int i = 0; i < 4; ++i) {
+			query->bindColumnReal(i + 1, data.color[i]);
+		};
+
+		query->bindColumnText(5, data.name);
+		query->bindColumnText(6, data.discription);
+		query->bindColumnInteger(7, data.project_group_id);
+		
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	int ProjectDb::updateData(const Project& data)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateProject));
+		for (int i = 1; i <= 4; ++i) {
+			query->bindColumnInteger(i, data.color[i]);
+		};
+
+		query->bindColumnText(5, data.name);
+		query->bindColumnText(6, data.discription);
+		query->bindColumnInteger(7, data.ID);
+
+		query->exec();
+
+		return 0;
+	}
+
+	int ProjectDb::deleteData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryDeleteProject));
+		query->bindColumnInteger(1, id);
+		query->exec();
+
+		return 0;
+	}
+
+	Ref<Project> ProjectDb::fetchData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryFetchProject));
+		query->bindColumnInteger(1, id);
+		Ref<SqliteTable> result = query->exec();
+	
+
+		if (result->isEmpty())
+		{
+			TIMEY_CORE_WARN("Cannot find project with id {}.", id);
+			return nullptr;
+		};
+
+		Ref<SqliteRow> row = result->getCurrentRow();
+		Ref<Project> newProject = CreateRef<Project>();
+
+		newProject->ID = (*row)[0];
+		newProject->color = { (*row)[1] ,  (*row)[2] , (*row)[3] ,  (*row)[4] };
+		newProject->name = (*row)[5];
+		newProject->discription = (*row)[6];
+		newProject->project_group_id = (*row)[7];
+
+
+		query->unbindAllColumns();
+		return newProject;
+	}
+
+	void ProjectDb::initProjectDb()
+	{
+		TIMEY_INSTALL_QUERY(queryCreateProjectsTable);
+		execQuery(TIMEY_TO_STR(queryCreateProjectsTable));
+
+		TIMEY_INSTALL_QUERY(queryAddProject);
+		TIMEY_INSTALL_QUERY(queryFetchProject);
+		TIMEY_INSTALL_QUERY(queryDeleteProject);
+		TIMEY_INSTALL_QUERY(queryUpdateProject);
+		TIMEY_INSTALL_QUERY(queryUpdateProjectGroup);
+
+
 	}
 
 }

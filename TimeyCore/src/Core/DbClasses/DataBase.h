@@ -1,6 +1,7 @@
 #pragma once
 #include "timey_pch.h"
 #include "sqlite3.h"
+#include "Core\Object.h"
 
 namespace Timey {
 
@@ -153,7 +154,11 @@ namespace Timey {
 
 		operator int64_t () { return data.i; };
 		operator long int() { return data.i; };
+
+
 		operator int() { return static_cast<int>(data.i); };
+		operator uint32_t() { return static_cast<uint32_t>(data.i); };
+
 		operator double() { return data.d; };
 		operator float() { return static_cast<float>(data.d); };
 		operator char const* () { return static_cast<char const*>(data.c); };
@@ -192,18 +197,24 @@ namespace Timey {
 		// This class can only be constructed by exec() in SqliteQuery. 
 		SqliteTable(sqlite3_stmt* stmt)
 			:stmt(stmt) {
-			currentRow = 0;
-			colCount = sqlite3_column_count(stmt);
+	
 			int ok = sqlite3_step(stmt);
-			is_empty = ok == SQLITE_DONE ? true : false;
-			sqlite3_reset(stmt);
 
+			if ((ok != SQLITE_ROW) && (ok != SQLITE_DONE)) {
+				TIMEY_CORE_ERROR("Execute query failure. ({0})", ok);
+				return;
+			};
+
+			is_empty = (ok == SQLITE_DONE) ? true : false;
+			currentRow = 1;
+			colCount = sqlite3_column_count(stmt);
 		};
 
 		int64_t getEntryInt(uint32_t col);
 		double getEntryReal(uint32_t col);
 		const char* getEntryText(uint32_t col, std::size_t& sz);
 		const void* getEntryBlob(uint32_t col, std::size_t& sz);
+		void setEmpty(bool e) { is_empty = e; };
 
 		static SQLType getTypeFromNativeType(int type);
 		SqliteRowMap cache;
@@ -242,6 +253,7 @@ namespace Timey {
 		int bindColumnInteger(uint32_t idx, int value);
 		int bindColumnReal(uint32_t idx, double value);
 		int bindColumnText(uint32_t idx, const char* value);
+		int bindColumnText(uint32_t idx, const std::string& value);
 		int bindColumnNull(uint32_t idx);
 		int bindColumnBlob(uint32_t idx, const void* data, uint32_t size);
 		int unbindAllColumns();
@@ -290,6 +302,8 @@ namespace Timey {
 	template <typename DataType>
 	class DataBase : public SqliteDb
 	{
+
+	public:
 		DataBase(const std::string& filename)
 			: SqliteDb{ filename }
 		{
@@ -302,14 +316,36 @@ namespace Timey {
 		virtual Ref<DataType> fetchData(uint32_t id) = 0;
 
 
-		Ref<SqliteQuery> getQuery(const std::string& name) { return CreateRef<SqliteQuery>{queryCache[name]}; };
+
+		inline Ref<SqliteQuery> getQuery(const std::string& name) { return CreateRef<SqliteQuery>(queryCache[name]); };
 		
 	protected:
 		void installQuery(const std::string& name, const SqliteQuery& query);
-		void execAllQuery();
+		Ref<SqliteTable> execQuery(const std::string& name);
 	private:
 		QueryCache queryCache;
 
+	};
+
+
+
+	class ProjectDb : public DataBase<Project> {
+
+	public:
+
+		ProjectDb(const std::string& filename)
+			: DataBase<Project>{ filename }
+		{
+			initProjectDb();
+		};
+
+		virtual int insertData(const Project& data) override;
+		virtual int updateData(const Project& data) override;
+		virtual int deleteData(uint32_t id) override;
+		virtual Ref<Project> fetchData(uint32_t id) override;
+	
+	private:
+		void initProjectDb();
 	};
 
 
