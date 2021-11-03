@@ -5,36 +5,6 @@
 
 namespace Timey {
 
-	namespace TestUtil {
-
-		static int rand_num(int max, int min = 0 ) {
-		
-			if (max <= min) return min;
-
-			static std::random_device randDev;
-			static std::mt19937 Gen(randDev());
-			static std::uniform_int_distribution<std::size_t> dist;
-
-			return min + ( dist(Gen) % (max - min + 1) );
-		}
-
-		static double rand_real(double max = 1.0, double min = 0.0) {
-			if (max <= min) return min;
-			static std::random_device randDev;
-			static std::mt19937 Gen(randDev());
-
-			std::uniform_real_distribution dist(min, max);
-			return dist(Gen);
-
-		}
-
-
-
-
-
-	};
-
-
 	static const std::string sqlite_db_test_create_table_str = R"(
 	-- create session table
 	CREATE TABLE sessions (
@@ -71,6 +41,47 @@ namespace Timey {
 
 	static const std::string sqlite_db_test_select_str = R"( SELECT * FROM sessions WHERE session_id == ?1; )";
 	static const std::string sqlite_db_test_selectAll_str = "SELECT * FROM sessions;";
+
+	namespace TestUtil {
+
+		static int rand_num(int max, int min = 0 ) {
+		
+			if (max <= min) return min;
+
+			static std::random_device randDev;
+			static std::mt19937 Gen(randDev());
+			static std::uniform_int_distribution<std::size_t> dist;
+
+			return min + ( dist(Gen) % (max - min + 1) );
+		}
+
+		static float rand_real(float max = 1.0, float min = 0.0) {
+			if (max <= min) return min;
+			static std::random_device randDev;
+			static std::mt19937 Gen(randDev());
+
+			std::uniform_real_distribution dist(min, max);
+			return dist(Gen);
+
+		}
+
+		static Ref<Project> gen_projects() {
+
+			Project* nwProject = new Project;
+
+			nwProject->color = { rand_real(), rand_real(), rand_real(), rand_real() };
+			nwProject->name = "Test Project Title.";
+			nwProject->discription = "Some descrption";
+			nwProject->project_group_id = rand_num(1024);
+
+			Ref<Project> proj = CreateRef<Project>();
+			proj.reset(nwProject);
+			return proj;
+		};
+
+
+
+	};
 
 	static void sqlite_db_test() {
 
@@ -154,7 +165,38 @@ namespace Timey {
 
 	};
 
+	static void project_db_test() {
+
+
+		std::string projDBPath = "../databases/testProj.db";
+		namespace fs = std::filesystem;
+		if (fs::is_regular_file(projDBPath)) {
+			fs::remove(projDBPath);
+		};
+
+		ProjectDb* projdb = new ProjectDb{projDBPath};
+		
+		std::vector<Ref<Project>> ramdom_projects;
+		std::size_t projects_num = 100;
+		for (int i = 0; i < projects_num; i++) {
+			ramdom_projects.push_back(TestUtil::gen_projects());
+		}
+
+		// Insert Ramdom data.
+		for (auto p : ramdom_projects) {
+			projdb->insertData(*p);
+		};
+
+		// Fetch all of them
+		for (int i = 1; i <= projects_num; i++) {
+			Ref<Project> p1 = projdb->fetchData(i);
+			Ref<Project> p2 = ramdom_projects[i - 1];
+
+		}
+
+	};
+
 	void print_res() {
-		sqlite_db_test();
+		project_db_test();
 	};
  }

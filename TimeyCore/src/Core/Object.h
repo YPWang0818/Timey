@@ -8,7 +8,7 @@ namespace Timey {
 
 	struct BaseObject {
 		std::string name;
-		uint32_t ID; 
+		uint32_t ID = 0; 
 
 		virtual std::string toString() const = 0;
 	protected:
@@ -167,7 +167,12 @@ namespace Timey {
 	struct Project : public BaseObject
 	{
 		std::string discription;
-		Color project_color;
+		union
+		{
+			Color project_color;
+			std::array<float, 4> color;
+		};
+
 		int project_group_id;
 		std::vector<std::shared_ptr<Tag>> tag_list;
 
