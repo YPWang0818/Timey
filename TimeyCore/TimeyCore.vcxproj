@@ -140,16 +140,17 @@
     <ClInclude Include="src\Core\TimeyID.h" />
     <ClInclude Include="src\Core\TimeyTime.h" />
     <ClInclude Include="src\Core\Utilty.h" />
+    <ClInclude Include="src\Tests\IntegrationTest.h" />
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Core\DbClasses\DBtest.cpp" />
     <ClCompile Include="src\Core\DbClasses\DataBase.cpp" />
     <ClCompile Include="src\Core\FileManager.cpp" />
     <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="src\Core\TimeyID.cpp" />
     <ClCompile Include="src\Core\TimeyTime.cpp" />
+    <ClCompile Include="src\Tests\IntegrationTest.cpp" />
     <ClCompile Include="src\timey_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

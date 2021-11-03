@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
 
 	Timey::Application* app;
 	app = Timey::CreateApp();
-	Timey::print_res();
+	//Timey::print_res();
 	app->Run();	
 
 }

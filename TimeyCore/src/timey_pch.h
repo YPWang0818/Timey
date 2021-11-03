@@ -22,6 +22,8 @@
 #include <type_traits>
 #include <typeinfo>
 
+#include <filesystem>
+
 //porject internal headers
 
 #include "Core/Log.h"

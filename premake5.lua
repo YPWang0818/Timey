@@ -87,7 +87,7 @@ workspace "Timey"
 		
 		kind "StaticLib"
 		language "C++"
-		cppdialect "C++20"
+		cppdialect "C++17"
 	
 		targetdir ("bin/" .. outdir .. "/%{prj.name}")
 		objdir ("obj/" .. outdir .. "/%{prj.name}")
@@ -99,7 +99,11 @@ workspace "Timey"
 			"%{prj.name}/src/**.h",
 			"%{prj.name}/src/**.hpp",
 			"%{prj.name}/src/**.cpp",
-			"%{prj.name}/src/**.c"
+			"%{prj.name}/src/**.c",
+            "%{prj.name}/Tests/**.h",
+			"%{prj.name}/Tests/**.hpp",
+			"%{prj.name}/Tests/**.cpp",
+			"%{prj.name}/Tests/**.c"
 		}
 		
 		

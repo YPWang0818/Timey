@@ -7,6 +7,9 @@
     <Filter Include="Core\DbClasses">
       <UniqueIdentifier>{B1C616AB-9D94-0AB1-8628-7BD77295E615}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{5865280E-C479-50BF-8DFB-F31EF9CE4CF0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\DbClasses\DataBase.h">
@@ -33,13 +36,13 @@
     <ClInclude Include="src\Core\Utilty.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Tests\IntegrationTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
     <ClInclude Include="src\TimeyCore.h" />
     <ClInclude Include="src\timey_pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Core\DbClasses\DBtest.cpp">
-      <Filter>Core\DbClasses</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\DbClasses\DataBase.cpp">
       <Filter>Core\DbClasses</Filter>
     </ClCompile>
@@ -54,6 +57,9 @@
     </ClCompile>
     <ClCompile Include="src\Core\TimeyTime.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Tests\IntegrationTest.cpp">
+      <Filter>Tests</Filter>
     </ClCompile>
     <ClCompile Include="src\timey_pch.cpp" />
   </ItemGroup>
