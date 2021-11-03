@@ -13,7 +13,6 @@
 
 #define TIMEY_TO_STR(str) #str
 
-
 #endif
 namespace Timey {
 
@@ -26,9 +25,7 @@ namespace Timey {
 	///															///
 	/// ********************************************************///
 
-
 	static const std::string queryCreateProjectsTable
-
 		= R"(
 		--project table
 
@@ -47,7 +44,6 @@ namespace Timey {
     			ON DELETE RESTRICT
     			ON UPDATE CASCADE );
 		)";
-
 
 	static const std::string queryAddProject
 		= R"(INSERT INTO projects (color_r, color_g, color_b, color_a, title, discription, projects_group_id) 
