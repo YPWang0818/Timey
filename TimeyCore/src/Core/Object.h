@@ -10,7 +10,17 @@ namespace Timey {
 		std::string name;
 		uint32_t ID = 0; 
 
-		virtual std::string toString() const = 0;
+		virtual std::string toString() const {
+			std::stringstream ss;
+			ss << "Name: " << name << " ID: " << ID;
+			return ss.str();
+		}
+		
+		bool operator==(const BaseObject& other) {
+			bool isIDSame = (ID && other.ID) ? (ID == other.ID) : true; // Only compare the ID if both objects are initialized. 
+			return isIDSame && (name == other.name);
+		};
+
 	protected:
 		BaseObject(uint32_t id, const std::string name)
 			:ID(id), name(name) {};
@@ -23,6 +33,11 @@ namespace Timey {
 	struct GroupObject : public BaseObject
 	{
 		uint32_t parentID;
+
+		bool operator==(const GroupObject& other) {
+			return (static_cast<BaseObject>(*this) == static_cast<BaseObject>(other)) 
+				&& (parentID == other.parentID);
+		};
 
 	protected:
 		GroupObject(uint32_t ID, const std::string& name, uint32_t parent_id)
@@ -80,6 +95,10 @@ namespace Timey {
 			ss << "(" << r << "," << g << "," << b << "," << a << ")";
 			return ss.str();
 		}
+
+		bool operator==(const Color& other) {
+				return (r = other.r) && (g == other.g) && (b == other.b) && (a == other.a);
+		};
 	};
 
 
@@ -95,6 +114,10 @@ namespace Timey {
 
 		Tag() = default;
 
+		bool operator==(const Tag& other) {
+			return (static_cast<BaseObject>(*this) == static_cast<BaseObject>(other)) &&
+				(tag_group_id == other.tag_group_id) && (tag_color == other.tag_color);
+		};
 		virtual std::string toString() const  override {
 
 			std::stringstream ss;
@@ -160,7 +183,24 @@ namespace Timey {
 			return ss.str();
 		}
 
+		bool operator==(const Session& other) {
 
+			bool success = true;
+			if (tag_list.size() == other.tag_list.size()) {
+				success = false;
+			}
+			else {
+				for (int i = 0; i < tag_list.size(); i++) {
+					success = success && (tag_list[i] == other.tag_list[i]);
+				};
+			};
+
+			return (static_cast<BaseObject>(*this) == static_cast<BaseObject>(other)) &&
+				(discription == other.discription) &&
+				(duration == other.duration) &&
+				(project_id == other.project_id) &&
+				success;
+		};
 
 	};
 
@@ -172,9 +212,28 @@ namespace Timey {
 			Color project_color;
 			std::array<float, 4> color;
 		};
-
 		int project_group_id;
 		std::vector<std::shared_ptr<Tag>> tag_list;
+
+
+		bool operator==(const Project& other) {
+			
+			bool success = true;
+			if (tag_list.size() == other.tag_list.size()) {
+				success = true;
+			}
+			else {
+				for (int i = 0; i < tag_list.size(); i++) {
+					success = success && (tag_list[i] == other.tag_list[i]);
+				};
+			};
+			
+			return (static_cast<BaseObject>(*this) == static_cast<BaseObject>(other)) && 
+				(discription == other.discription) &&
+				(project_color == other.project_color) && 
+				(project_group_id == other.project_group_id) && 
+				success;
+		};
 
 		Project(uint32_t ID, const std::string& name, const std::string& discription, Color color, int prjgp_id)
 			:BaseObject(ID, name), project_color(color), discription(discription), project_group_id(prjgp_id), tag_list(std::vector<std::shared_ptr<Tag>>()) {};

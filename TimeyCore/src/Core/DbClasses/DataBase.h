@@ -247,7 +247,7 @@ namespace Timey {
 		SqliteQuery& operator = (const SqliteQuery& other) = default;
 		SqliteQuery& operator = (SqliteQuery&& other) noexcept = default;
 
-		int compile(const SqliteDb& db); // Binding db will make the qurey status become prepared.
+		int compile(const SqliteDb& db); // Compile db will make the qurey status become prepared.
 		void detach();
 
 		int bindColumnInteger(uint32_t idx, int value);

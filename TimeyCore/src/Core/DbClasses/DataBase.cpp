@@ -344,16 +344,17 @@ namespace Timey {
 	int ProjectDb::updateData(const Project& data)
 	{
 		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateProject));
-		for (int i = 1; i <= 4; ++i) {
-			query->bindColumnInteger(i, data.color[i]);
+		for (int i = 0; i < 4; ++i) {
+			query->bindColumnReal(i + 1, data.color[i]);
 		};
 
 		query->bindColumnText(5, data.name);
 		query->bindColumnText(6, data.discription);
-		query->bindColumnInteger(7, data.ID);
+		query->bindColumnInteger(7, data.project_group_id);
+		query->bindColumnInteger(8, data.ID);
 
 		query->exec();
-
+		query->unbindAllColumns();;
 		return 0;
 	}
 
@@ -362,6 +363,7 @@ namespace Timey {
 		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryDeleteProject));
 		query->bindColumnInteger(1, id);
 		query->exec();
+		query->unbindAllColumns();
 
 		return 0;
 	}

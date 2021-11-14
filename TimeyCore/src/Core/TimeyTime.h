@@ -23,6 +23,10 @@ namespace Timey {
 
 		T* operator&() { return &time_val; };
 
+		bool operator==(const GenericTimeVal& other) {
+			return (time_val == other.time_val);
+		}
+
 
 	private:
 		T time_val;
@@ -48,6 +52,10 @@ namespace Timey {
 		bool isVaild();
 		void clipToVaild();
 		void setToNow();
+
+		bool operator==(const Date& other) {
+			return (year == other.year) && (month == other.month) && (day == other.day);
+		};
 
 		std::string toString() const {
 			std::stringstream ss;
@@ -95,6 +103,10 @@ namespace Timey {
 			return ss.str();
 		}
 
+		bool operator==(const Time& other) {
+			return (hour == other.hour) && (minute == other.minute) && (second == other.second);
+		};
+
 	protected:
 		bool isMinSecValid();
 
@@ -113,6 +125,11 @@ namespace Timey {
 		ClockTime(Hour hr, Minute min, Second sec)
 			:Time(hr, min, sec) {};
 
+		bool operator==(const ClockTime& other) {
+			return ( static_cast<Time>(*this) == static_cast<Time>(other) );
+		}
+
+
 		virtual bool isVaild();
 		virtual void clipToVaild();
 		void setToNow();
@@ -129,6 +146,11 @@ namespace Timey {
 		ClockTime time;
 
 		void setToNow() { date.setToNow(); time.setToNow(); };
+
+		bool operator==(const DateTime& other) {
+			return (date == other.date) && (time == other.time);
+		}
+
 
 		std::string toString() const {
 			std::stringstream ss;
