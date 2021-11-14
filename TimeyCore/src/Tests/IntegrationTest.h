@@ -3,16 +3,39 @@
 
 namespace Timey {
 
-	class Project;
+	struct Project;
+	class IntegrationTestSuite;
 
-	class IntegrationTest {
+	class IntegrationTests {
+
+		IntegrationTests();
+		~IntegrationTests();
+
+		std::vector<Scope<IntegrationTestSuite>> m_integrationTest;
+		static IntegrationTests* m_instance;
+
+		inline auto& getTestsInternals() { return m_integrationTest; };
+	public:
+		static IntegrationTests& getTests() {
+			if (!m_instance) {
+				m_instance = new IntegrationTests;
+			};
+			return *m_instance;
+		};
+
+		static void Run();
+	};
+
+	class IntegrationTestSuite {
 
 	public:
-		IntegrationTest(const std::string& name) 
+		IntegrationTestSuite(const std::string& name) 
 			:m_testName{name}
 		{};
 
 		virtual void run() = 0;
+		virtual void setup();
+		virtual void teardown();
 
 		static int randNumber(int max, int min = 0);
 		static float randReal(float max = 1.0, float min = 0.0);
@@ -23,11 +46,11 @@ namespace Timey {
 		std::string m_testName;
 	};
 
-	class DataBaseTest : public IntegrationTest {
+	class DataBaseTest : public IntegrationTestSuite {
 
 	public:
 		DataBaseTest(const std::string& name, const std::string& dbpath)
-			:IntegrationTest{ name }, m_dbpath{dbpath}
+			:IntegrationTestSuite{ name }, m_dbpath{dbpath}
 		{
 			namespace fs = std::filesystem;
 			if (fs::is_regular_file(dbpath)) {
@@ -38,6 +61,7 @@ namespace Timey {
 		};
 
 		virtual void run() override;
+
 
 	private:
 		Ref<Project> genProjects();
