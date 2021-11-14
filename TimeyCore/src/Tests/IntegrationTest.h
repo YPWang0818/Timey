@@ -39,7 +39,7 @@ namespace Timey {
 
 		static int randNumber(int max, int min = 0);
 		static float randReal(float max = 1.0, float min = 0.0);
-		static std::string randStrings(std::size_t len);
+		static std::string randString(std::size_t len);
 
 
 	private:
@@ -65,6 +65,8 @@ namespace Timey {
 
 	private:
 		Ref<Project> genProjects();
+		void copyProjectContent(const Ref<Project> src, Ref<Project> dest); // Won't copy the id.
+
 		void test_Projects_DataBase();
 
 	private:

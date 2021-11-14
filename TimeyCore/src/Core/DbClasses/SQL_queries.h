@@ -65,8 +65,9 @@ namespace Timey {
 				 color_b = ?3,
 				 color_a = ?4,
 				 title = ?5, 
-				 discription = ?6
-			WHERE  project_id = ?7;
+				 discription = ?6,
+				 projects_group_id = ?7 
+			WHERE  project_id = ?8;
 		)";
 
 	static const std::string queryUpdateProjectGroup
