@@ -18,6 +18,8 @@
 #include <unordered_set>
 
 //porject internal headers
+
+#define FMT_USE_NONTYPE_TEMPLATE_PARAMETERS 0 // Manually turned of using non-type parameters.
 #include "Core/Log.h"
 #include "Core/Utilty.h"
 
