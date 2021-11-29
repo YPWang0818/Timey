@@ -323,8 +323,8 @@ namespace Timey {
 
 		strcpy(newSess->name.data(), m_title.data());
 		strcpy(newSess->discription.data(), m_description.data());
-		newSess->start_time = m_startTime;
-		newSess->end_time = m_endTime;
+		//newSess->start_time = m_startTime;
+		//newSess->end_time = m_endTime;
 		newSess->duration = (float)m_duration.toSeconds();
 		newSess->ID = 0;
 
@@ -373,8 +373,8 @@ namespace Timey {
 		
 		strcpy(m_description.data(), sesList[0]->discription.data());
 		m_duration = Time::secondsInTime(sesList[0]->duration);
-		m_startTime = sesList[0]->start_time;
-		m_endTime = sesList[0]->end_time;
+		//m_startTime = sesList[0]->start_time;
+		//m_endTime = sesList[0]->end_time;
 		strcpy(m_title.data(), sesList[0]->name.data());
 
 		return;

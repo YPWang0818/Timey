@@ -153,8 +153,7 @@ namespace Timey {
 
 
 		operator int64_t () { return data.i; };
-		operator long int() { return data.i; };
-
+		operator uint64_t () { return data.i; };
 
 		operator int() { return static_cast<int>(data.i); };
 		operator uint32_t() { return static_cast<uint32_t>(data.i); };
@@ -243,9 +242,9 @@ namespace Timey {
 		SqliteQuery() = default;
 		
 		SqliteQuery(const SqliteQuery& other) = default;
-		SqliteQuery( SqliteQuery&& other) noexcept = default;
-		SqliteQuery& operator = (const SqliteQuery& other) = default;
-		SqliteQuery& operator = (SqliteQuery&& other) noexcept = default;
+		SqliteQuery(SqliteQuery&& other) noexcept = default;
+		SqliteQuery& operator= (const SqliteQuery& other) = default;
+		SqliteQuery& operator= (SqliteQuery&& other) noexcept = default;
 
 		int compile(const SqliteDb& db); // Compile db will make the qurey status become prepared.
 		void detach();
@@ -265,8 +264,10 @@ namespace Timey {
 
 	private:
 		void bdErrorMsg(int errcode);
+
 	private:
 		bool prepared = false;
+
 		const SqliteDb* bindedDb = nullptr;
 		sqlite3_stmt* stmt = nullptr;
 		std::string query;
@@ -311,6 +312,13 @@ namespace Timey {
 
 		};
 
+		~DataBase()
+		{
+			for (auto query : queryCache) {
+				(query.second).detach();
+			};
+		};
+
 		virtual int insertData(const DataType& data) = 0;
 		virtual int updateData(const DataType& data) = 0;
 		virtual int deleteData(uint32_t id) = 0;
@@ -322,6 +330,8 @@ namespace Timey {
 	protected:
 		void installQuery(const std::string& name, const SqliteQuery& query);
 		Ref<SqliteTable> execQuery(const std::string& name);
+	private:
+		void tearDownDb();
 	private:
 		QueryCache queryCache;
 
@@ -339,6 +349,7 @@ namespace Timey {
 			initProjectDb();
 		};
 
+
 		virtual int insertData(const Project& data) override;
 		virtual int updateData(const Project& data) override;
 		virtual int deleteData(uint32_t id) override;
@@ -346,10 +357,89 @@ namespace Timey {
 	
 	private:
 		void initProjectDb();
+
+	};
+
+	class SessionDb : public DataBase<Session> {
+
+	public:
+
+		SessionDb(const std::string& filename)
+			: DataBase<Session>{ filename }
+		{
+			initSessionDb();
+		};
+
+
+		virtual int insertData(const Session& data) override;
+		virtual int updateData(const Session& data) override;
+		virtual int deleteData(uint32_t id) override;
+		virtual Ref<Session> fetchData(uint32_t id) override;
+
+	private:
+		void initSessionDb();
 	};
 
 
-	void print_res();
 	
+	class TagDb : public DataBase<Tag> {
 
+	public:
+
+		TagDb(const std::string& filename)
+			: DataBase<Tag>{ filename }
+		{
+			initTagsDb();
+		};
+
+
+		virtual int insertData(const Tag& data) override;
+		virtual int updateData(const Tag& data) override;
+		virtual int deleteData(uint32_t id) override;
+		virtual Ref<Tag> fetchData(uint32_t id) override;
+
+	private:
+		void initTagsDb();
+	};
+
+
+	class ProjectGroupDb : public DataBase<ProjectGroup> {
+
+	public:
+
+		ProjectGroupDb(const std::string& filename)
+			: DataBase<ProjectGroup>{ filename }
+		{
+			initProjectGroupDb();
+		};
+
+
+		virtual int insertData(const ProjectGroup& data) override;
+		virtual int updateData(const ProjectGroup& data) override;
+		virtual int deleteData(uint32_t id) override;
+		virtual Ref<ProjectGroup> fetchData(uint32_t id) override;
+
+	private:
+		void initProjectGroupDb();
+	};
+
+	class TagGroupDb : public DataBase<TagGroup> {
+
+	public:
+
+		TagGroupDb(const std::string& filename)
+			: DataBase<TagGroup>{ filename }
+		{
+			initTagGroupDb();
+		};
+
+
+		virtual int insertData(const TagGroup& data) override;
+		virtual int updateData(const TagGroup& data) override;
+		virtual int deleteData(uint32_t id) override;
+		virtual Ref<TagGroup> fetchData(uint32_t id) override;
+
+	private:
+		void initTagGroupDb();
+	};
 };

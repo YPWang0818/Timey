@@ -1,9 +1,10 @@
 #include "timey_pch.h"
-
+#include "Core\DbClasses\DataBase.h"
 
 namespace Timey {
 
 	struct Project;
+	struct Session;
 	class IntegrationTestSuite;
 
 	class IntegrationTests {
@@ -58,21 +59,47 @@ namespace Timey {
 				fs::remove(dbpath);
 			};
 
+			sessiondb = CreateScope<SessionDb>(m_dbpath);
+			projdb = CreateScope<ProjectDb>(m_dbpath);
+			tagdb = CreateScope<TagDb>(m_dbpath);
+			projgpdb = CreateScope<ProjectGroupDb>(m_dbpath);
+			taggpdb = CreateScope<TagGroupDb>(m_dbpath);
 		};
 
 		virtual void run() override;
 
-
 	private:
 		Ref<Project> genProjects();
+		Ref<Session> genSessions();
+		Ref<Tag> genTags();
+		Ref<ProjectGroup> genProjectGroups();
+		Ref<TagGroup> genTagGroups();
+
 		void copyProjectContent(const Ref<Project> src, Ref<Project> dest); // Won't copy the id.
+		void copySessionContent(const Ref<Session> src, Ref<Session> dest); 
+		void copyTagContent(const Ref<Tag> src, Ref<Tag> dest);
+		void copyProjectGroupContent(const Ref<ProjectGroup> src, Ref<ProjectGroup> dest);
+		void copyTagGroupContent(const Ref<TagGroup> src, Ref<TagGroup> dest);
 
 		void test_Projects_DataBase();
+		void test_Sessions_DataBase();
+		void test_Tags_DataBase();
+		void test_ProjectGroup_DataBase();
+		void test_TagGroup_DataBase();
+
+
 
 	private:
 		std::string m_dbpath; // = "../databases/test.db";
+		Scope<SessionDb>  sessiondb;
+		Scope<ProjectDb> projdb;
+		Scope<TagDb> tagdb;
+		Scope<ProjectGroupDb> projgpdb;
+		Scope<TagGroupDb> taggpdb;
 
 	};
+
+
 
 
 }

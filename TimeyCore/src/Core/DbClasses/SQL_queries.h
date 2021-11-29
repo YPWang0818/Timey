@@ -28,8 +28,6 @@ namespace Timey {
 	static const std::string queryCreateProjectsTable
 		= R"(
 		--project table
-
-
 		CREATE TABLE projects (
 			project_id		INTEGER		 PRIMARY KEY AUTOINCREMENT,
 			color_r 	REAL	NOT NULL CHECK (0 <= color_r AND 1 >= color_r),
@@ -70,13 +68,6 @@ namespace Timey {
 			WHERE  project_id = ?8;
 		)";
 
-	static const std::string queryUpdateProjectGroup
-		= R"(
-			UPDATE projects
-			SET  projects_group_id = ?1
-			WHERE  project_id = ?2;
-		)";
-	
 
 
 	/// ********************************************************///
@@ -85,7 +76,7 @@ namespace Timey {
 	///															///
 	/// ********************************************************///
 
-	static const std::string create_projectsgrouptb_query = R"(
+	static const std::string queryCreateProjectGroupsTable = R"(
 		-- project group
 
 		CREATE TABLE projects_group (
@@ -97,18 +88,23 @@ namespace Timey {
     			ON DELETE CASCADE
     			ON UPDATE CASCADE ); )";
 
-	static const std::string add_projects_group_query = R"(
+	static const std::string queryAddProjectGroup = R"(
 			INSERT INTO projects_group (name, parent_id) VALUES(?1, ?2);
 		)";
 
-	static const std::string delete_projects_group_query = R"(
+	static const std::string queryDeleteProjectGroup = R"(
 		DELETE FROM projects_group WHERE projects_group_id == ?1 ;
 		)";
 
-	static const std::string fetch_projects_group_query = R"(
+	static const std::string queryFetchProjectGroup = R"(
 		SELECT * FROM projects_group WHERE projects_group_id == ?1;
 		)";
 
+	static const std::string queryUpdateProjectGroup = R"(
+			UPDATE projects_group
+			SET	 name = ?1,
+				 parent_id = ?2
+		    WHERE  projects_group_id = ?3; )";
 
 	/// ********************************************************///
 	///															///
@@ -117,25 +113,13 @@ namespace Timey {
 	/// ********************************************************///
 
 
-	static const std::string create_sessionstb_query = R"(
+	static const std::string queryCreateSessionsTable = R"(
 	-- create session table
 	CREATE TABLE sessions (
 		session_id		INTEGER		 PRIMARY KEY AUTOINCREMENT,
-		duration		REAL 	NOT NULL,
-
-		start_year		INTEGER NOT NULL, 
-		start_month		INTEGER NOT NULL CHECK( 1 <= start_month AND 12 >= start_month),
-		start_day		INTEGER NOT NULL CHECK( 1 <= start_day AND 31 >= start_day),
-		start_hour		INTEGER NOT NULL CHECK( 0 <= start_hour AND 24 >= start_hour),
-		start_minute	INTEGER NOT NULL CHECK( 0 <= start_minute AND 60 > start_minute),
-		start_second	INTEGER NOT NULL CHECK( 0 <= start_second AND 60 > start_second),
-
-		end_year		INTEGER NOT NULL, 
-		end_month		INTEGER NOT NULL CHECK( 1 <= end_month AND 12 >= end_month),
-		end_day			INTEGER NOT NULL CHECK( 1 <= end_day AND 31 >= end_day),
-		end_hour		INTEGER NOT NULL CHECK( 0 <= end_hour AND 24 >= end_hour),
-		end_minute		INTEGER NOT NULL CHECK( 0 <= end_minute AND 60 > end_minute),
-		end_second		INTEGER NOT NULL CHECK( 0 <= end_second AND 60 > end_second),
+		duration		INTEGER 	NOT NULL,
+		start_time		INTEGER		NOT NULL, 
+		end_time		INTEGER		NOT NULL, 
 
 		title			TEXT NOT NULL,
 		discription		TEXT,
@@ -147,17 +131,34 @@ namespace Timey {
 	)";
 
 
-	static std::string add_session_query
-		= R"(INSERT INTO sessions (duration, start_year , start_month, start_day, start_hour, start_minute, start_second,
-			 end_year, end_month, end_day, end_hour, end_minute, end_second, title, discription, project_id)  
-			 VALUES(?1, ?2 ,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16);)";
+	static std::string queryAddSession = R"(INSERT INTO sessions (
+			duration, 
+			start_time,
+			end_time, 
+			title, 
+			discription, 
+			project_id)  
+		VALUES(?1, ?2 ,?3, ?4, ?5, ?6 ); )";
 
-	static const std::string fetch_session_query = R"(
+	static const std::string queryFetchSession = R"(
 		SELECT * FROM sessions WHERE session_id == ?1;
 		)";
 
-	static const std::string delete_session_query = R"(
+	static const std::string queryDeleteSession 
+		= R"(
 		DELETE FROM sessions WHERE session_id == ?1 ;
+		)";
+
+	static const std::string queryUpdateSession
+		= R"(
+			UPDATE sessions
+			SET  duration = ?1,
+				 start_time = ?2,
+				 end_time = ?3,
+				 title = ?4, 
+				 discription = ?5,
+				 project_id = ?6 
+			WHERE  session_id = ?7;
 		)";
 
 
@@ -168,7 +169,7 @@ namespace Timey {
 	///*********************************************************///
 
 
-	static const std::string create_tagstb_query = R"(
+	static const std::string queryCreateTagsTable = R"(
 			--tag table
 			CREATE TABLE tags (
 				tag_id		INTEGER		 PRIMARY KEY AUTOINCREMENT,
@@ -184,24 +185,26 @@ namespace Timey {
     				ON UPDATE CASCADE);	)";
 
 
-		static const std::string add_tag_query
+		static const std::string queryAddTag
 			= R"( 
 			INSERT INTO tags(color_r, color_g, color_b, color_a, title, tags_group_id)
 			VALUES(?1, ?2, ?3, ?4, ?5, ?6); )";
 
-		static const std::string fetch_tag_query
-			= R"( 
+		static const std::string queryFetchTag = R"( 
 			SELECT * FROM tags WHERE tag_id == ?1; )";
 
-		static const std::string delete_tag_query 
-			= R"(
+		static const std::string queryDeleteTag = R"(
 			DELETE FROM tags WHERE tag_id == ?1 ; )";
 
-		static const std::string update_tags_group_query 
-			= R"(
+		static const std::string queryUpdateTag = R"(
 			UPDATE tags
-			SET  tags_group_id = ?1
-			WHERE  tag_id = ?2; )";
+			SET  color_r = ?1,
+				 color_g = ?2,
+				 color_b = ?3,
+				 color_a = ?4,
+				 title = ?5,
+				 tags_group_id = ?6
+			WHERE  tag_id = ?7; )";
 
 
 		///*********************************************************///
@@ -211,7 +214,7 @@ namespace Timey {
 		///*********************************************************///
 
 
-		static const std::string create_tagsgrouptb_query = R"(
+		static const std::string queryCreateTagGroupsTable = R"(
 		--tag group
 
 		CREATE TABLE tags_group (
@@ -224,17 +227,23 @@ namespace Timey {
     			ON UPDATE CASCADE );
 		)";
 
-		const std::string add_tags_group_query = R"(
+		static const std::string queryAddTagGroup = R"(
 			INSERT INTO tags_group (name, parent_id) VALUES(?1, ?2);
 		)";
 
-		static const std::string delete_tags_group_query = R"(
+		static const std::string queryDeleteTagGroup = R"(
 		DELETE FROM tags_group WHERE tags_group_id == ?1 ;
 		)";
 
-		static const std::string fetch_tags_group_query = R"(
+		static const std::string queryFetchTagGroup = R"(
 		SELECT * FROM tags_group WHERE tags_group_id == ?1;
 		)";
+
+		static const std::string queryUpdateTagGroup = R"(
+			UPDATE tags_group
+			SET	   name = ?1,
+				   parent_id = ?2
+		    WHERE  tags_group_id = ?3; )";
 
 
 		/// ********************************************************///

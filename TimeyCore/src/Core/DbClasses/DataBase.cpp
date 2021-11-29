@@ -54,6 +54,7 @@ namespace Timey {
 
 	void SqliteQuery::detach()
 	{
+		unbindAllColumns();
 		sqlite3_finalize(stmt);
 		stmt = nullptr;
 		bindedDb = nullptr;
@@ -64,6 +65,8 @@ namespace Timey {
 	int SqliteQuery::bindColumnInteger(uint32_t idx, int value)
 	{
 		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
+
+	
 		int ok = sqlite3_bind_int(stmt, idx, value);
 		bdErrorMsg(ok);
 
@@ -74,6 +77,7 @@ namespace Timey {
 	{
 		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
 
+	
 		int ok = sqlite3_bind_double(stmt, idx, value);
 		bdErrorMsg(ok);
 
@@ -98,6 +102,7 @@ namespace Timey {
 	int SqliteQuery::bindColumnNull(uint32_t idx)
 	{
 		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
+
 		int ok = sqlite3_bind_null(stmt, idx);
 		bdErrorMsg(ok);
 
@@ -107,6 +112,8 @@ namespace Timey {
 	int SqliteQuery::bindColumnBlob(uint32_t idx, const void* data, uint32_t size)
 	{
 		if (!prepared) { TIMEY_ASSERT(false, "The statement is not prepared."); };
+
+
 		int ok = sqlite3_bind_blob(stmt, idx, data, size, nullptr);
 		bdErrorMsg(ok);
 
@@ -307,6 +314,8 @@ namespace Timey {
 	}
 
 
+
+
 	template <typename DataType>
 	void DataBase<DataType>::installQuery(const std::string& name, const SqliteQuery& query)
 	{
@@ -318,7 +327,23 @@ namespace Timey {
 	template<typename DataType>
 	Ref<SqliteTable> DataBase<DataType>::execQuery(const std::string& name)
 	{
-		return queryCache[name].exec();
+		auto res = queryCache.find(name);
+		if ( res != queryCache.end() ) {
+			return (res->second).exec();
+		}
+		else{
+			TIMEY_ASSERT(false, "Can not find the query.");
+			return nullptr;
+		};
+	
+	}
+
+	template<typename DataType>
+	void DataBase<DataType>::tearDownDb()
+	{
+		for (auto query : queryCache) {
+			(query.second).detach();
+		};
 	}
 
 
@@ -341,6 +366,8 @@ namespace Timey {
 
 	int ProjectDb::updateData(const Project& data)
 	{
+		TIMEY_ASSERT(data.ID, "The data to be updated is not initialized in database.");
+
 		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateProject));
 		for (int i = 0; i < 4; ++i) {
 			query->bindColumnReal(i + 1, data.color[i]);
@@ -352,7 +379,7 @@ namespace Timey {
 		query->bindColumnInteger(8, data.ID);
 
 		query->exec();
-		query->unbindAllColumns();;
+		query->unbindAllColumns();
 		return 0;
 	}
 
@@ -402,9 +429,335 @@ namespace Timey {
 		TIMEY_INSTALL_QUERY(queryFetchProject);
 		TIMEY_INSTALL_QUERY(queryDeleteProject);
 		TIMEY_INSTALL_QUERY(queryUpdateProject);
+
+
+	}
+
+	int SessionDb::insertData(const Session& data)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryAddSession));
+	
+		query->bindColumnInteger(1, data.duration);
+		query->bindColumnInteger(2, data.start_time);
+		query->bindColumnInteger(3, data.end_time);
+		query->bindColumnText(4, data.name);
+		query->bindColumnText(5, data.discription);
+		query->bindColumnInteger(6, data.project_id);
+
+		query->exec();
+		query->unbindAllColumns();
+		return 0;
+	}
+
+	int SessionDb::updateData(const Session& data)
+	{
+
+		TIMEY_ASSERT(data.ID, "The data to be updated is not initialized in database.");
+	
+
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateSession));
+	
+		query->bindColumnInteger(1, data.duration);
+		query->bindColumnInteger(2, data.start_time);
+		query->bindColumnInteger(3, data.end_time);
+		query->bindColumnText(4, data.name);
+		query->bindColumnText(5, data.discription);
+		query->bindColumnInteger(6, data.project_id);
+		query->bindColumnInteger(7, data.ID);
+
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	int SessionDb::deleteData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryDeleteSession));
+		query->bindColumnInteger(1, id);
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	Ref<Session> SessionDb::fetchData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryFetchSession));
+		query->bindColumnInteger(1, id);
+		Ref<SqliteTable> result = query->exec();
+
+
+		if (result->isEmpty())
+		{
+			TIMEY_CORE_WARN("Cannot find session with id {}.", id);
+			return nullptr;
+		};
+
+		Ref<SqliteRow> row = result->getCurrentRow();
+		Ref<Session> newSession = CreateRef<Session>();
+
+		newSession->ID = (*row)[0];
+		newSession->duration = (*row)[1];
+		newSession->start_time = (*row)[2];
+		newSession->end_time = (*row)[3];
+		newSession->name = (*row)[4];
+		newSession->discription = (*row)[5];
+		newSession->project_id = (*row)[6];
+		query->unbindAllColumns();
+
+		// Didn't fetch the tags.
+		return newSession;
+	}
+
+	void SessionDb::initSessionDb()
+	{
+
+		TIMEY_INSTALL_QUERY(queryCreateSessionsTable);
+		execQuery(TIMEY_TO_STR(queryCreateSessionsTable));
+
+		TIMEY_INSTALL_QUERY(queryAddSession);
+		TIMEY_INSTALL_QUERY(queryFetchSession);
+		TIMEY_INSTALL_QUERY(queryDeleteSession);
+		TIMEY_INSTALL_QUERY(queryUpdateSession);
+
+	}
+
+
+	int TagDb::insertData(const Tag& data)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryAddTag));
+
+		for (int i = 0; i < 4; ++i) {
+			query->bindColumnReal(i + 1, data.color[i]);
+		};
+
+		query->bindColumnText(5, data.name);
+		query->bindColumnInteger(6, data.tag_group_id);
+		query->exec();
+		query->unbindAllColumns();;
+		return 0;
+	}
+
+	int TagDb::updateData(const Tag& data)
+	{
+		TIMEY_ASSERT(data.ID, "The data to be updated is not initialized in database.");
+
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateTag));
+		for (int i = 0; i < 4; ++i) {
+			query->bindColumnReal(i + 1, data.color[i]);
+		};
+
+		query->bindColumnText(5, data.name);
+		query->bindColumnInteger(6, data.tag_group_id);
+		query->bindColumnInteger(7, data.ID);
+
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	int TagDb::deleteData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryDeleteTag));
+		query->bindColumnInteger(1, id);
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	Ref<Tag> TagDb::fetchData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryFetchTag));
+		query->bindColumnInteger(1, id);
+		Ref<SqliteTable> result = query->exec();
+
+
+		if (result->isEmpty())
+		{
+			TIMEY_CORE_WARN("Cannot find Tag with id {}.", id);
+			return nullptr;
+		};
+
+		Ref<SqliteRow> row = result->getCurrentRow();
+		Ref<Tag> newTag = CreateRef<Tag>();
+
+		newTag->ID = (*row)[0];
+		newTag->color = { (*row)[1] ,  (*row)[2] , (*row)[3] ,  (*row)[4] };
+		newTag->name = (*row)[5];
+		newTag->tag_group_id = (*row)[6];
+
+		query->unbindAllColumns();
+		
+		return newTag;
+	}
+
+	void TagDb::initTagsDb()
+	{
+		TIMEY_INSTALL_QUERY(queryCreateTagsTable);
+		execQuery(TIMEY_TO_STR(queryCreateTagsTable));
+
+		TIMEY_INSTALL_QUERY(queryAddTag);
+		TIMEY_INSTALL_QUERY(queryFetchTag);
+		TIMEY_INSTALL_QUERY(queryDeleteTag);
+		TIMEY_INSTALL_QUERY(queryUpdateTag);
+	}
+
+
+	int ProjectGroupDb::insertData(const ProjectGroup& data)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryAddProjectGroup));
+
+		query->bindColumnText(1, data.name);
+		query->bindColumnInteger(2, data.parentID);
+
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	int ProjectGroupDb::updateData(const ProjectGroup& data)
+	{
+
+		TIMEY_ASSERT(data.ID, "The data to be updated is not initialized in database.");
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateProjectGroup));
+
+		query->bindColumnText(1, data.name);
+		query->bindColumnInteger(2, data.parentID);
+		query->bindColumnInteger(3, data.ID);
+
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	int ProjectGroupDb::deleteData(uint32_t id)
+	{
+
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryDeleteProjectGroup));
+		query->bindColumnInteger(1, id);
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	Ref<ProjectGroup> ProjectGroupDb::fetchData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryFetchProjectGroup));
+		query->bindColumnInteger(1, id);
+		Ref<SqliteTable> result = query->exec();
+
+
+		if (result->isEmpty())
+		{
+			TIMEY_CORE_WARN("Cannot find project group with id {}.", id);
+			return nullptr;
+		};
+
+		Ref<SqliteRow> row = result->getCurrentRow();
+		Ref<ProjectGroup> newSession = CreateRef<ProjectGroup>();
+
+		newSession->ID = (*row)[0];
+		newSession->name = (*row)[1];
+		newSession->parentID = (*row)[2];
+		query->unbindAllColumns();
+
+		// Didn't fetch the tags.
+		return newSession;
+	}
+
+	void ProjectGroupDb::initProjectGroupDb()
+	{
+		TIMEY_INSTALL_QUERY(queryCreateProjectGroupsTable);
+		execQuery(TIMEY_TO_STR(queryCreateProjectGroupsTable));
+
+		TIMEY_INSTALL_QUERY(queryAddProjectGroup);
+		TIMEY_INSTALL_QUERY(queryFetchProjectGroup);
+		TIMEY_INSTALL_QUERY(queryDeleteProjectGroup);
 		TIMEY_INSTALL_QUERY(queryUpdateProjectGroup);
 
+	}
 
+
+	int TagGroupDb::insertData(const TagGroup& data)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryAddTagGroup));
+
+		query->bindColumnText(1, data.name);
+		query->bindColumnInteger(2, data.parentID);
+
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+
+	int TagGroupDb::updateData(const TagGroup& data)
+	{
+		TIMEY_ASSERT(data.ID, "The data to be updated is not initialized in database.");
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryUpdateTagGroup));
+
+		query->bindColumnText(1, data.name);
+		query->bindColumnInteger(2, data.parentID);
+		query->bindColumnInteger(3, data.ID);
+
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	int TagGroupDb::deleteData(uint32_t id)
+	{
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryDeleteTagGroup));
+		query->bindColumnInteger(1, id);
+		query->exec();
+		query->unbindAllColumns();
+
+		return 0;
+	}
+
+	Ref<TagGroup> TagGroupDb::fetchData(uint32_t id)
+	{
+
+		Ref<SqliteQuery> query = getQuery(TIMEY_TO_STR(queryFetchTagGroup));
+		query->bindColumnInteger(1, id);
+		Ref<SqliteTable> result = query->exec();
+
+
+		if (result->isEmpty())
+		{
+			TIMEY_CORE_WARN("Cannot find Tag Group with id {}.", id);
+			return nullptr;
+		};
+
+		Ref<SqliteRow> row = result->getCurrentRow();
+		Ref<TagGroup> newTagGroup = CreateRef<TagGroup>();
+
+		newTagGroup->ID = (*row)[0];
+		newTagGroup->name = (*row)[1];
+		newTagGroup->parentID = (*row)[2];
+
+		query->unbindAllColumns();
+
+		return newTagGroup;
+	}
+
+	void TagGroupDb::initTagGroupDb()
+	{
+		TIMEY_INSTALL_QUERY(queryCreateTagGroupsTable);
+		execQuery(TIMEY_TO_STR(queryCreateTagGroupsTable));
+
+		TIMEY_INSTALL_QUERY(queryAddTagGroup);
+		TIMEY_INSTALL_QUERY(queryFetchTagGroup);
+		TIMEY_INSTALL_QUERY(queryDeleteTagGroup);
+		TIMEY_INSTALL_QUERY(queryUpdateTagGroup);
 	}
 
 }

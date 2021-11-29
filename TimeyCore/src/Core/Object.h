@@ -83,6 +83,7 @@ namespace Timey {
 
 	};
 	struct Color {
+
 		float r;
 		float g;
 		float b;
@@ -103,7 +104,12 @@ namespace Timey {
 
 
 	struct Tag : public BaseObject {
-		Color tag_color;
+		
+		union {
+			std::array<float, 4> color;
+			Color tag_color;
+		};
+
 		int tag_group_id;
 
 		Tag(uint32_t ID, const std::string& name, Color color, int taggp_id)
@@ -130,18 +136,29 @@ namespace Timey {
 		}
 	};
 
+
+	using EpochTime = uint64_t;
+
 	struct Session : public BaseObject
 	{
 		std::string discription;
-		float duration;
-		DateTime start_time;
-		DateTime end_time;
+		uint64_t duration;
+		EpochTime start_time;
+		EpochTime end_time;
 		uint32_t project_id;
 		std::vector<std::shared_ptr<Tag>> tag_list;
 
 		Session() = default;
 
-		Session(uint32_t ID, const std::string& name, const std::string& discription, DateTime start_time, DateTime end_time, float duration, uint32_t project_ID)
+		Session(
+			const std::string& name, 
+			const std::string& discription,
+			EpochTime start_time,
+			EpochTime end_time,
+			uint64_t duration, 
+			uint32_t project_ID = 0,
+			uint32_t ID = 0
+		)
 			:BaseObject(ID, name),
 			discription(discription),
 			start_time(start_time),
@@ -151,15 +168,7 @@ namespace Timey {
 			tag_list(std::vector<std::shared_ptr<Tag>>())
 		{};
 
-		Session(const std::string& name, const std::string& discription, DateTime start_time, DateTime end_time, float duration, uint32_t project_ID = 0) 
-			:BaseObject(name),
-			discription(discription),
-			start_time(start_time),
-			end_time(end_time),
-			duration(duration),
-			project_id(project_ID),
-			tag_list(std::vector<std::shared_ptr<Tag>>())
-		{}; // project_ID = 0 implies the session is in no projects.
+		// project_ID = 0 implies the session is in no projects.
 
 
 		virtual std::string toString() const override {
@@ -169,8 +178,8 @@ namespace Timey {
 			ss << "Name: " << name << "\n";
 			ss << "ID: " << ID << "\n";
 			ss << "Duration: " << duration << "\n";
-			ss << "Start time: " << start_time.toString() << "\n";
-			ss << "End time: " << end_time.toString() << "\n";
+			ss << "Start time (Epoch Time): " << start_time << "\n";
+			ss << "End time (Epcoh Time): " << end_time << "\n";
 			ss << "Discription: " << discription << "\n";
 			ss << "Project ID:" << project_id << "\n";
 
@@ -186,7 +195,7 @@ namespace Timey {
 		bool operator==(const Session& other) {
 
 			bool success = true;
-			if (tag_list.size() == other.tag_list.size()) {
+			if (tag_list.size() != other.tag_list.size()) {
 				success = false;
 			}
 			else {
@@ -199,6 +208,8 @@ namespace Timey {
 				(discription == other.discription) &&
 				(duration == other.duration) &&
 				(project_id == other.project_id) &&
+				(start_time == other.start_time) &&
+				(end_time == other.end_time) &&
 				success;
 		};
 
