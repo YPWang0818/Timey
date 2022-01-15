@@ -29,9 +29,9 @@ namespace Timey {
 
 
 	#elif defined(TIMEY_PLATFORM_LINUX)
-	TIMEY_CORE_CRITICAL("Timey doesn't currently support linux");
+	static_assert(false, "Timey doesn't currently support linux");
 	#else 
-	TIMEY_CORE_CRITICAL("Timey doesn't support the current operating system.");
+	static_assert(false, "Timey doesn't support the current operating system.");
 	#endif
 
 

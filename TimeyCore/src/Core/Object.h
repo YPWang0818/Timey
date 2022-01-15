@@ -1,4 +1,3 @@
-#pragma once
 #include "timey_pch.h"
 #include "TimeyTime.h"
 

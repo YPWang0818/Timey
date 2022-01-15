@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 3.20)
-project(app)
+
 
 set (source
-	"src/timey_pch.cpp"
-	"src/timey_pch.h"
 	"src/AppCore/Application.cpp"
 	"src/AppCore/Application.h"
 	"src/AppCore/BaseWindow.cpp"
@@ -26,9 +23,20 @@ set (source
 	"src/UI/UIWindows.h"
 	)
 
-	
+	set(includedirs 
+	"${CMAKE_SOURCE_DIR}/TimeyApplication/src/AppCore"
+	"${CMAKE_SOURCE_DIR}/TimeyApplication/src"
+	"${CMAKE_SOURCE_DIR}/TimeyCore/src"
+	)
 
-add_executable(timey_gui ${source})
+add_executable(timey_gui ${source} ${precomppath})
+
+target_include_directories(timey_gui PRIVATE ${moduledirs} )
+target_include_directories(timey_gui PRIVATE ${includedirs} )
+target_compile_features(timey_gui PUBLIC cxx_std_20)
+
+target_precompile_headers(timey_gui PUBLIC ${precomppath} )
+
 target_link_libraries(timey_gui 
 					  PUBLIC timey_core)
 

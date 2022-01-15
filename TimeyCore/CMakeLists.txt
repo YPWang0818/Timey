@@ -1,10 +1,6 @@
-cmake_minimum_required(VERSION 3.20)
-project(core)
 
 set (source
 	"src/TimeyCore.h"
-	"src/timey_pch.cpp"
-	"src/timey_pch.h"
 	"src/Core/FileManager.cpp"
 	"src/Core/FileManager.h"
 	"src/Core/Log.cpp"
@@ -20,6 +16,18 @@ set (source
 	"src/Core/DbClasses/SQL_queries.h"
 	)
 
-	
 
-add_library(timey_core ${source})
+set(includedirs 
+	"${CMAKE_SOURCE_DIR}/TimeyCore/src"
+	"${CMAKE_SOURCE_DIR}/TimeyCore/src/Core" )
+	
+add_library(timey_core ${source} ${precomppath})
+target_include_directories(timey_core PRIVATE ${moduledirs} )
+target_include_directories(timey_core PRIVATE ${includedirs} )
+target_compile_features(timey_core PUBLIC cxx_std_20)
+
+target_precompile_headers(timey_core PUBLIC ${precomppath} )
+
+target_link_libraries(timey_core 
+					  PUBLIC sqlite3 spdlog)
+
